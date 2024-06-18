@@ -17,6 +17,27 @@ class DatasetRepo(DatasetRepoInterface):
         """Construct ProjectRepo."""
         self.client = client
 
+    def get_datasets(self, org_id: str) -> List[Dict]:
+        """Get all datasets in organization."""
+        query = f"""
+            query sdkDataStores($orgId: UUID!) {{
+                dataStores(orgId: $orgId) {{
+                    orgId
+                    name
+                    displayName
+                    createdAt
+                    createdBy
+                    status
+                    updatedAt
+                    importStatuses
+                }}
+            }}
+        """
+        response: Dict[str, List[Dict]] = self.client.execute_query(
+            query, {"orgId": org_id}
+        )
+        return response["dataStores"]
+
     def get_project(self, org_id: str, project_id: str) -> Dict:
         """
         Get project name and status.
@@ -24,13 +45,21 @@ class DatasetRepo(DatasetRepoInterface):
         Raise an exception if project does not exist.
         """
         query = f"""
-            query sdkGetProjectNameSDK($orgId: UUID!, $projectId: UUID!) {{
-                project(orgId: $orgId, projectId: $projectId) {{
-                    {PROJECT_SHARD}
+            query sdkDataStore($orgId: UUID!, $name: String!) {{
+                dataStore(orgId: $orgId, name: $name) {{
+                    orgId
+                    name
+                    displayName
+                    createdAt
+                    createdBy
+                    status
+                    updatedAt
+                    importStatuses
                 }}
             }}
         """
         variables = {"orgId": org_id, "projectId": project_id}
+        print(variables)
         response: Dict[str, Dict] = self.client.execute_query(query, variables)
         if response.get("project"):
             return response["project"]

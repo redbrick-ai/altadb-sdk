@@ -63,7 +63,7 @@ class CLIDataset:
         """Get CLIProject from given directory."""
         path = os.path.realpath(path)
 
-        if os.path.isdir(os.path.join(path, ".redbrick")):
+        if os.path.isdir(os.path.join(path, ".altadb")):
             return cls(path, required)
 
         parent = os.path.realpath(os.path.join(path, ".."))

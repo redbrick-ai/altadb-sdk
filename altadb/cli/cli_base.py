@@ -250,6 +250,7 @@ class CLIInterface(ABC):
     export: CLIExportInterface
     upload: CLIUploadInterface
     report: CLIReportInterface
+    list: CLIListInterface
 
     CONFIG = "config"
     INIT = "init"
@@ -258,6 +259,7 @@ class CLIInterface(ABC):
     EXPORT = "export"
     UPLOAD = "upload"
     REPORT = "report"
+    LIST = "list"
 
     @abstractmethod
     def handle_command(self, args: Namespace) -> None:

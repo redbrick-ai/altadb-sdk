@@ -8,10 +8,10 @@ from typing import Dict
 import requests  # type: ignore
 
 import aiohttp
-import tenacity
-from tenacity.retry import retry_if_not_exception_type
-from tenacity.stop import stop_after_attempt
-from tenacity.wait import wait_exponential
+import tenacity  # type: ignore
+from tenacity.retry import retry_if_not_exception_type  # type: ignore
+from tenacity.stop import stop_after_attempt  # type: ignore
+from tenacity.wait import wait_exponential  # type: ignore
 
 from altadb import __version__ as sdk_version  # pylint: disable=cyclic-import
 from altadb.config import config

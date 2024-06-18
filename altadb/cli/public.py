@@ -4,7 +4,8 @@ import sys
 import argparse
 from typing import List, Optional, Any
 
-import shtab
+from altadb.cli.command.list import CLIListController
+import shtab  # type: ignore
 
 import altadb
 from altadb.cli.command import (
@@ -93,6 +94,13 @@ associated with every task, including:
 """,
             )
         )
+        self.list = CLIListController(
+            command.add_parser(
+                self.LIST,
+                help="List all datasets",
+                description="List all datasets",
+            )
+        )
 
     def handle_command(self, args: argparse.Namespace) -> None:
         """CLI command main handler."""
@@ -110,6 +118,8 @@ associated with every task, including:
             self.upload.handler(args)
         elif args.command == self.REPORT:
             self.report.handler(args)
+        elif args.command == self.LIST:
+            self.list.handler(args)
         else:
             raise argparse.ArgumentError(None, "")
 

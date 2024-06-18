@@ -41,56 +41,56 @@ class AltaDBDataset:
 
         self._org_id = org_id
         self._project_id = project_id
-        self._project_name: str
-        self._stages: List[Dict]
-        self.td_type: str
-        self._taxonomy_name: str
-        self._project_url: str
-        self._created_at: datetime
-        self._workspace_id: Optional[str]
+        # self._project_name: str
+        # self._stages: List[Dict]
+        # self.td_type: str
+        # self._taxonomy_name: str
+        # self._project_url: str
+        # self._created_at: datetime
+        # self._workspace_id: Optional[str]
 
-        self.consensus_enabled: bool = False
-        self._label_storage: Optional[Tuple[str, str]] = None
+        # self.consensus_enabled: bool = False
+        # self._label_storage: Optional[Tuple[str, str]] = None
 
-        self._taxonomy: Optional[Taxonomy] = None
+        # self._taxonomy: Optional[Taxonomy] = None
 
         # check if project exists on backend to validate
-        self._get_project()
+        # self._get_project()
 
         # check if project taxonomy is valid
-        taxonomy = self.taxonomy
+        # taxonomy = self.taxonomy
 
-        self.upload = Upload(context, org_id, project_id, taxonomy)
+        # self.upload = Upload(context, org_id, project_id, taxonomy)
 
-        self.output_stage_name: str = "Output"
-        for stage in self._stages:
-            if stage["brickName"] == "labelset-output":
-                self.output_stage_name = stage["stageName"]
+        # self.output_stage_name: str = "Output"
+        # for stage in self._stages:
+        #     if stage["brickName"] == "labelset-output":
+        #         self.output_stage_name = stage["stageName"]
 
-        label_stages: List[LabelStage] = []
-        review_stages: List[ReviewStage] = []
-        stages = self.stages
-        for stg in stages:
-            if isinstance(stg, LabelStage):
-                label_stages.append(stg)
-            elif isinstance(stg, ReviewStage):
-                review_stages.append(stg)
+        # label_stages: List[LabelStage] = []
+        # review_stages: List[ReviewStage] = []
+        # stages = self.stages
+        # for stg in stages:
+        #     if isinstance(stg, LabelStage):
+        #         label_stages.append(stg)
+        #     elif isinstance(stg, ReviewStage):
+        #         review_stages.append(stg)
 
-        self.labeling = Labeling(context, org_id, project_id, taxonomy, label_stages)
-        self.review = Labeling(
-            context, org_id, project_id, taxonomy, review_stages, review=True
-        )
-        self.export = Export(
-            context,
-            org_id,
-            project_id,
-            taxonomy,
-            self.output_stage_name,
-            self.consensus_enabled,
-            label_stages,
-            review_stages,
-        )
-        self.settings = Settings(context, org_id, project_id, taxonomy)
+        # self.labeling = Labeling(context, org_id, project_id, taxonomy, label_stages)
+        # self.review = Labeling(
+        #     context, org_id, project_id, taxonomy, review_stages, review=True
+        # )
+        # self.export = Export(
+        #     context,
+        #     org_id,
+        #     project_id,
+        #     taxonomy,
+        #     self.output_stage_name,
+        #     self.consensus_enabled,
+        #     label_stages,
+        #     review_stages,
+        # )
+        # self.settings = Settings(context, org_id, project_id, taxonomy)
 
     @property
     def org_id(self) -> str:
