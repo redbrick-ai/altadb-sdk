@@ -446,3 +446,8 @@ class UploadRepo(UploadControllerInterface):
         }
 
         await self.client.execute_query_async(session, query_string, query_variables)
+
+
+__all__ = [
+    "UploadRepo",
+]
