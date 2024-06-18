@@ -5,6 +5,7 @@ from typing import Optional
 from InquirerPy.prompts.input import InputPrompt
 
 from altadb.cli.cli_base import CLIInputParams
+from altadb.common.constants import DEFAULT_URL
 
 
 class CLIInputURL(CLIInputParams):
@@ -32,7 +33,7 @@ class CLIInputURL(CLIInputParams):
                 qmark=">",
                 amark=">",
                 message="URL:",
-                default="https://api.redbrickai.com",
+                default=DEFAULT_URL,
                 transformer=self.filtrator,
                 filter=self.filtrator,
                 validate=self.validator,

@@ -1,5 +1,6 @@
 """Input api_key handler."""
 
+import re
 from typing import Optional
 
 from InquirerPy.prompts.input import InputPrompt
@@ -22,7 +23,12 @@ class CLIInputAPIAccessKey(CLIInputParams):
     def validator(self, entity: str) -> bool:
         """Validate input entity."""
         api_key = self.filtrator(entity)
-        return len(api_key) == 36
+        return (
+            len(api_key) == 40
+            and api_key.startswith("API:")
+            and re.match(r"^[\da-f]{8}-([\da-f]{4}-){3}[\da-f]{12}$", api_key[4:])
+            is not None
+        )
 
     def get(self) -> str:
         """Get filtered api_key value post validation."""

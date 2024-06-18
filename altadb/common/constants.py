@@ -5,7 +5,7 @@ MAX_FILE_BATCH_SIZE = 5
 MAX_RETRY_ATTEMPTS = 3
 REQUEST_TIMEOUT = 30
 
-DEFAULT_URL = "https://api.redbrickai.com"
+DEFAULT_URL = "https://preview.altadb.com"
 
 PEERLESS_ERRORS = (
     KeyboardInterrupt,

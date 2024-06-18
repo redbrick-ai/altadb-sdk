@@ -31,9 +31,7 @@ class AltaDBClient:
         """Construct RBClient."""
         self.config = config
         self.url = (url or DEFAULT_URL).lower().rstrip("/")
-        if DEFAULT_URL in self.url:
-            self.url = DEFAULT_URL
-        elif "amazonaws.com" not in self.url and "localhost" not in self.url:
+        if "amazonaws.com" not in self.url and "localhost" not in self.url:
             self.url = self.url.replace("https://", "", 1).replace("http://", "", 1)
             pos = self.url.find("/")
             pos = pos if pos >= 0 else len(self.url)
@@ -44,10 +42,14 @@ class AltaDBClient:
 
         self.api_key = api_key
         self.secret_key = secret
-        # assert_validation(
-        #     len(self.api_key) == 43,
-        #     "Invalid Api Key length, make sure you've copied it correctly",
-        # )
+        assert_validation(
+            len(self.api_key) == 40,
+            "Invalid Api Key length, make sure you've copied it correctly",
+        )
+        assert_validation(
+            len(self.secret_key) == 43,
+            "Invalid Api Key length, make sure you've copied it correctly",
+        )
 
     def __del__(self) -> None:
         """Garbage collect and close session."""
@@ -56,7 +58,7 @@ class AltaDBClient:
     @property
     def gql_api_key(self) -> str:
         """Get API key for graphql."""
-        return f"API:{self.api_key}:{self.secret_key}"
+        return f"{self.api_key}:{self.secret_key}"
 
     @property
     def headers(self) -> Dict:
