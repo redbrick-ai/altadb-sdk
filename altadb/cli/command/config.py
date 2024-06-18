@@ -155,7 +155,9 @@ class CLIConfigController(CLIConfigInterface):
                         ),
                     )
                 row.append(
-                    ("***" + value[-3:]) if key == "key" and not config.debug else value
+                    ("***" + value[-3:])
+                    if key in ("key", "secret") and not config.debug
+                    else value
                 )
             columns_set = True
             rows.append(row)

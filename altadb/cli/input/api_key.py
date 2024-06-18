@@ -22,8 +22,7 @@ class CLIInputAPIAccessKey(CLIInputParams):
     def validator(self, entity: str) -> bool:
         """Validate input entity."""
         api_key = self.filtrator(entity)
-        # return len(api_key) == 43
-        return True
+        return len(api_key) == 36
 
     def get(self) -> str:
         """Get filtered api_key value post validation."""
