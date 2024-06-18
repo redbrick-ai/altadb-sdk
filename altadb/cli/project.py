@@ -7,16 +7,16 @@ from rich.console import Console
 
 from altadb import _populate_context
 from altadb.config import config
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.organization import RBOrganization
-from altadb.project import RBProject
+from altadb.project import AltaDBDataset
 from altadb.cli.entity import CLICache, CLIConfiguration, CLICredentials
 from altadb.utils.common_utils import config_path
 from altadb.utils.logging import assert_validation, logger
 
 
-class CLIProject:
-    """CLIProject class."""
+class CLIDataset:
+    """CLIDataset class."""
 
     path: str
 
@@ -24,9 +24,9 @@ class CLIProject:
     conf: CLIConfiguration
     cache: CLICache
 
-    _context: Optional[RBContext] = None
+    _context: Optional[AltaDBContext] = None
     _org: Optional[RBOrganization] = None
-    _project: Optional[RBProject] = None
+    _project: Optional[AltaDBDataset] = None
 
     def __init__(self, path: str = ".", required: bool = True) -> None:
         """Initialize CLIProject."""
@@ -59,7 +59,7 @@ class CLIProject:
     @classmethod
     def from_path(
         cls, path: str = ".", required: bool = True
-    ) -> Optional["CLIProject"]:
+    ) -> Optional["CLIDataset"]:
         """Get CLIProject from given directory."""
         path = os.path.realpath(path)
 
@@ -76,7 +76,7 @@ class CLIProject:
         return cls.from_path(parent, required)
 
     @property
-    def context(self) -> RBContext:
+    def context(self) -> AltaDBContext:
         """Get RedBrick context."""
         if not self._context:
             self._context = _populate_context(self.creds.context)
@@ -112,13 +112,13 @@ class CLIProject:
         return self._org
 
     @property
-    def project(self) -> RBProject:
+    def project(self) -> AltaDBDataset:
         """Get project object."""
         if not self._project:
             console = Console()
             with console.status("Fetching project") as status:
                 try:
-                    self._project = RBProject(
+                    self._project = AltaDBDataset(
                         self.context, self.org_id, self.project_id
                     )
                 except Exception as error:
@@ -128,7 +128,7 @@ class CLIProject:
                 console.print("[bold green]" + str(self._project))
         return self._project
 
-    def initialize_project(self, org: RBOrganization, project: RBProject) -> None:
+    def initialize_project(self, org: RBOrganization, project: AltaDBDataset) -> None:
         """Initialize local project."""
         assert_validation(
             not os.path.isdir(self._rb_dir), f"Already a RedBrick project {self.path}"

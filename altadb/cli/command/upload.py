@@ -8,7 +8,7 @@ from argparse import ArgumentError, ArgumentParser, Namespace
 from typing import List, Dict, Optional, Union, cast
 
 from altadb.cli.input.select import CLIInputSelect
-from altadb.cli.project import CLIProject
+from altadb.cli.project import CLIDataset
 from altadb.cli.cli_base import CLIUploadInterface
 from altadb.common.enums import StorageMethod, ImportTypes
 from altadb.utils.logging import assert_validation, logger
@@ -103,9 +103,9 @@ but may increase the upload time.""",
     def handler(self, args: Namespace) -> None:
         """Handle upload command."""
         self.args = args
-        project = CLIProject.from_path()
+        project = CLIDataset.from_path()
         assert_validation(project, "Not a valid project")
-        self.project = cast(CLIProject, project)
+        self.project = cast(CLIDataset, project)
 
         self.handle_upload()
 

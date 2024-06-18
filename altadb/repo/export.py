@@ -5,14 +5,14 @@ from datetime import datetime
 from dateutil import parser  # type: ignore
 
 from altadb.common.export import ExportControllerInterface, TaskFilterParams
-from altadb.common.client import RBClient
+from altadb.common.client import AltaDBClient
 from altadb.repo.shards import datapoint_shard, task_shard, router_task_shard
 
 
 class ExportRepo(ExportControllerInterface):
     """Handle API requests to get export data."""
 
-    def __init__(self, client: RBClient) -> None:
+    def __init__(self, client: AltaDBClient) -> None:
         """Construct ExportRepo."""
         self.client = client
 

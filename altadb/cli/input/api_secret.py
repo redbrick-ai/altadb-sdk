@@ -7,13 +7,13 @@ from InquirerPy.prompts.input import InputPrompt
 from altadb.cli.cli_base import CLIInputParams
 
 
-class CLIInputAPIAccessKey(CLIInputParams):
+class CLIInputAPISecretKey(CLIInputParams):
     """Input api_key handler."""
 
     def __init__(self, entity: Optional[str]) -> None:
         """Init handlers."""
         self.entity = entity
-        self.error_message = "Invalid API Key"
+        self.error_message = "Invalid API Secret Key"
 
     def filtrator(self, entity: str) -> str:
         """Filter input entity."""
@@ -32,7 +32,7 @@ class CLIInputAPIAccessKey(CLIInputParams):
             self.entity = InputPrompt(
                 qmark=">",
                 amark=">",
-                message="API Key:",
+                message="API Secret:",
                 transformer=self.filtrator,
                 filter=self.filtrator,
                 validate=self.validator,

@@ -3,14 +3,14 @@
 from typing import Optional, List, Dict
 import aiohttp
 
-from altadb.common.client import RBClient
+from altadb.common.client import AltaDBClient
 from altadb.common.labeling import LabelingControllerInterface
 
 
 class LabelingRepo(LabelingControllerInterface):
     """Implementation of manual labeling apis."""
 
-    def __init__(self, client: RBClient) -> None:
+    def __init__(self, client: AltaDBClient) -> None:
         """Construct ExportRepo."""
         self.client = client
 

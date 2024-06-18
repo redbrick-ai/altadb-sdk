@@ -11,7 +11,7 @@ from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_exponential
 from altadb.common.constants import PEERLESS_ERRORS
 
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.utils.logging import logger
 from altadb.utils.pagination import PaginationIterator
 from altadb.utils.rb_dicom_utils import dicom_dp_format
@@ -20,7 +20,7 @@ from altadb.utils.rb_dicom_utils import dicom_dp_format
 class RBWorkspace:
     """Interface for interacting with your RedBrick AI Workspaces."""
 
-    def __init__(self, context: RBContext, org_id: str, workspace_id: str) -> None:
+    def __init__(self, context: AltaDBContext, org_id: str, workspace_id: str) -> None:
         """Construct RBWorkspace."""
         # pylint: disable=import-outside-toplevel
 

@@ -5,14 +5,14 @@ from typing import List, Dict, Optional, Any, Sequence
 
 import aiohttp
 
-from altadb.common.client import RBClient
+from altadb.common.client import AltaDBClient
 from altadb.common.upload import UploadControllerInterface
 
 
 class UploadRepo(UploadControllerInterface):
     """Handle communication with backend relating to uploads."""
 
-    def __init__(self, client: RBClient) -> None:
+    def __init__(self, client: AltaDBClient) -> None:
         """Construct ExportRepo."""
         self.client = client
 

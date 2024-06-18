@@ -14,7 +14,7 @@ from tenacity.stop import stop_after_attempt
 import tqdm  # type: ignore
 
 from altadb.config import config
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.common.constants import MAX_CONCURRENCY
 from altadb.common.enums import ImportTypes, StorageMethod
 from altadb.types.taxonomy import Taxonomy
@@ -44,7 +44,7 @@ class Upload:
     """
 
     def __init__(
-        self, context: RBContext, org_id: str, project_id: str, taxonomy: Taxonomy
+        self, context: AltaDBContext, org_id: str, project_id: str, taxonomy: Taxonomy
     ) -> None:
         """Construct Upload object."""
         self.context = context

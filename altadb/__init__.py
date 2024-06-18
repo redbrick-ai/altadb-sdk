@@ -5,7 +5,7 @@ import asyncio
 
 import nest_asyncio  # type: ignore
 
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.common.enums import (
     StorageMethod,
     ImportTypes,
@@ -15,7 +15,7 @@ from altadb.common.enums import (
 from altadb.common.constants import DEFAULT_URL
 from altadb.organization import RBOrganization
 from altadb.workspace import RBWorkspace
-from altadb.project import RBProject
+from altadb.project import AltaDBDataset
 from altadb.stage import Stage, LabelStage, ReviewStage, ModelStage
 
 from altadb.utils.logging import logger
@@ -65,14 +65,14 @@ def version() -> str:
     return f"v{__version__}"
 
 
-def _populate_context(context: RBContext) -> RBContext:
+def _populate_context(context: AltaDBContext) -> AltaDBContext:
     # pylint: disable=import-outside-toplevel
     from altadb.repo import (
         ExportRepo,
         LabelingRepo,
         UploadRepo,
         SettingsRepo,
-        ProjectRepo,
+        DatasetRepo,
         WorkspaceRepo,
     )
 
@@ -83,12 +83,14 @@ def _populate_context(context: RBContext) -> RBContext:
     context.labeling = LabelingRepo(context.client)
     context.upload = UploadRepo(context.client)
     context.settings = SettingsRepo(context.client)
-    context.project = ProjectRepo(context.client)
+    context.project = DatasetRepo(context.client)
     context.workspace = WorkspaceRepo(context.client)
     return context
 
 
-def get_org(org_id: str, api_key: str, url: str = DEFAULT_URL) -> RBOrganization:
+def get_org(
+    org_id: str, api_key: str, secret: str, url: str = DEFAULT_URL
+) -> RBOrganization:
     """
     Get an existing redbrick organization object.
 
@@ -108,12 +110,12 @@ def get_org(org_id: str, api_key: str, url: str = DEFAULT_URL) -> RBOrganization
     url: str = DEFAULT_URL
         Should default to https://api.redbrickai.com
     """
-    context = _populate_context(RBContext(api_key=api_key, url=url))
+    context = _populate_context(AltaDBContext(api_key=api_key, secret=secret, url=url))
     return RBOrganization(context, org_id)
 
 
 def get_workspace(
-    org_id: str, workspace_id: str, api_key: str, url: str = DEFAULT_URL
+    org_id: str, workspace_id: str, api_key: str, secret: str, url: str = DEFAULT_URL
 ) -> RBWorkspace:
     """
     Get an existing RedBrick workspace object.
@@ -137,13 +139,13 @@ def get_workspace(
     url: str = DEFAULT_URL
         Should default to https://api.redbrickai.com
     """
-    context = _populate_context(RBContext(api_key=api_key, url=url))
+    context = _populate_context(AltaDBContext(api_key=api_key, secret=secret, url=url))
     return RBWorkspace(context, org_id, workspace_id)
 
 
 def get_project(
-    org_id: str, project_id: str, api_key: str, url: str = DEFAULT_URL
-) -> RBProject:
+    org_id: str, project_id: str, api_key: str, secret: str, url: str = DEFAULT_URL
+) -> AltaDBDataset:
     """
     Get an existing RedBrick project object.
 
@@ -166,15 +168,15 @@ def get_project(
     url: str = DEFAULT_URL
         Should default to https://api.redbrickai.com
     """
-    context = _populate_context(RBContext(api_key=api_key, url=url))
-    return RBProject(context, org_id, project_id)
+    context = _populate_context(AltaDBContext(api_key=api_key, secret=secret, url=url))
+    return AltaDBDataset(context, org_id, project_id)
 
 
 __all__ = [
     "__version__",
     "config",
     "version",
-    "RBContext",
+    "AltaDBContext",
     "StorageMethod",
     "ImportTypes",
     "TaxonomyTypes",
@@ -187,7 +189,7 @@ __all__ = [
     "ModelStage",
     "RBOrganization",
     "RBWorkspace",
-    "RBProject",
+    "AltaDBDataset",
     "get_org",
     "get_workspace",
     "get_project",

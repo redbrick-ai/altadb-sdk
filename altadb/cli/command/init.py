@@ -8,7 +8,7 @@ from rich.console import Console
 
 from altadb.config import config
 from altadb.cli.input import CLIInputNumber, CLIInputSelect, CLIInputText
-from altadb.cli.project import CLIProject
+from altadb.cli.project import CLIDataset
 from altadb.cli.cli_base import CLIInitInterface
 from altadb.organization import RBOrganization
 from altadb.utils.logging import assert_validation
@@ -45,7 +45,7 @@ class CLIInitController(CLIInitInterface):
     def handler(self, args: Namespace) -> None:
         """Handle init command."""
         self.args = args
-        project = CLIProject.from_path(path=self.args.path, required=False)
+        project = CLIDataset.from_path(path=self.args.path, required=False)
         assert_validation(project is None, "Already inside a project")
 
         path = os.path.realpath(self.args.path)
@@ -57,7 +57,7 @@ class CLIInitController(CLIInitInterface):
         else:
             os.makedirs(path)
 
-        self.project = CLIProject(path=self.args.path, required=False)
+        self.project = CLIDataset(path=self.args.path, required=False)
 
         self.handle_init()
 

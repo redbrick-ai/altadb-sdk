@@ -8,10 +8,10 @@ from rich.console import Console
 
 from altadb.config import config
 from altadb.cli.input.select import CLIInputSelect
-from altadb.cli.project import CLIProject
+from altadb.cli.project import CLIDataset
 from altadb.cli.cli_base import CLICloneInterface
 from altadb.organization import RBOrganization
-from altadb.project import RBProject
+from altadb.project import AltaDBDataset
 from altadb.utils.logging import assert_validation
 
 
@@ -39,7 +39,7 @@ class CLICloneController(CLICloneInterface):
             path = os.path.realpath(self.args.path)
             assert_validation(not os.path.exists(path), f"{path} already exists")
 
-        project = CLIProject.from_path(
+        project = CLIDataset.from_path(
             path="." if self.args.path is None else self.args.path, required=False
         )
         assert_validation(project is None, "Already inside a project")
@@ -49,7 +49,7 @@ class CLICloneController(CLICloneInterface):
     def handle_clone(self) -> None:
         """Handle empty sub command."""
         # pylint: disable=too-many-locals
-        temp = CLIProject(required=False)
+        temp = CLIDataset(required=False)
         assert_validation(temp.creds.exists, "Credentials missing")
 
         console = Console()
@@ -104,7 +104,7 @@ class CLICloneController(CLICloneInterface):
 
         os.makedirs(path)
 
-        project = CLIProject(path=path, required=False)
+        project = CLIDataset(path=path, required=False)
         project.initialize_project(
-            org, RBProject(org.context, org.org_id, project_ids[selected_index])
+            org, AltaDBDataset(org.context, org.org_id, project_ids[selected_index])
         )

@@ -13,7 +13,7 @@ from datetime import datetime, timezone
 import tqdm  # type: ignore
 
 from altadb.config import config
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.common.enums import ReviewStates, TaskFilters, TaskStates
 from altadb.common.export import TaskFilterParams
 from altadb.stage import LabelStage, ReviewStage
@@ -55,7 +55,7 @@ class Export:
 
     def __init__(
         self,
-        context: RBContext,
+        context: AltaDBContext,
         org_id: str,
         project_id: str,
         taxonomy: Taxonomy,

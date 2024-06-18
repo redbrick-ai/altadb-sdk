@@ -10,7 +10,7 @@ import shtab
 
 from altadb.cli.input.text import CLIInputText
 from altadb.cli.input.uuid import CLIInputUUID
-from altadb.cli.project import CLIProject
+from altadb.cli.project import CLIDataset
 from altadb.cli.cli_base import CLIInfoInterface
 from altadb.utils.logging import assert_validation, logger
 
@@ -42,9 +42,9 @@ class CLIInfoController(CLIInfoInterface):
     def handler(self, args: Namespace) -> None:
         """Handle info command."""
         self.args = args
-        project = CLIProject.from_path(path=self.args.path)
+        project = CLIDataset.from_path(path=self.args.path)
         assert_validation(project, "Not a valid project")
-        self.project = cast(CLIProject, project)
+        self.project = cast(CLIDataset, project)
 
         if self.args.get:
             self.handle_get()

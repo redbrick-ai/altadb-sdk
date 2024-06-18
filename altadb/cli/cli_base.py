@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from argparse import Namespace
 
-from altadb.cli.project import CLIProject
+from altadb.cli.project import CLIDataset
 from altadb.utils.logging import logger
 
 
@@ -89,7 +89,7 @@ class CLIConfigInterface(ABC):
     """CLI config command interface."""
 
     args: Namespace
-    project: CLIProject
+    project: CLIDataset
 
     LIST = "list"
     SET = "set"
@@ -135,7 +135,7 @@ class CLIInitInterface(ABC):
     """CLI init interface."""
 
     args: Namespace
-    project: CLIProject
+    project: CLIDataset
 
     @abstractmethod
     def handler(self, args: Namespace) -> None:
@@ -150,7 +150,7 @@ class CLICloneInterface(ABC):
     """CLI clone interface."""
 
     args: Namespace
-    project: CLIProject
+    project: CLIDataset
 
     @abstractmethod
     def handler(self, args: Namespace) -> None:
@@ -165,7 +165,7 @@ class CLIInfoInterface(ABC):
     """CLI info interface."""
 
     args: Namespace
-    project: CLIProject
+    project: CLIDataset
 
     SETTING_LABELSTORAGE = "labelstorage"
 
@@ -190,7 +190,7 @@ class CLIExportInterface(ABC):
     """CLI export interface."""
 
     args: Namespace
-    project: CLIProject
+    project: CLIDataset
 
     TYPE_LATEST = "latest"
     TYPE_GROUNDTRUTH = "groundtruth"
@@ -208,7 +208,7 @@ class CLIUploadInterface(ABC):
     """CLI upload interface."""
 
     args: Namespace
-    project: CLIProject
+    project: CLIDataset
 
     STORAGE_REDBRICK = "redbrick"
     STORAGE_PUBLIC = "public"
@@ -226,7 +226,7 @@ class CLIReportInterface(ABC):
     """CLI report interface."""
 
     args: Namespace
-    project: CLIProject
+    project: CLIDataset
 
     TYPE_ALL = "all"
     TYPE_GROUNDTRUTH = "groundtruth"

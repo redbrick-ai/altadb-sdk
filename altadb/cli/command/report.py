@@ -6,7 +6,7 @@ from datetime import datetime
 from argparse import ArgumentError, ArgumentParser, Namespace
 from typing import cast
 
-from altadb.cli.project import CLIProject
+from altadb.cli.project import CLIDataset
 from altadb.cli.cli_base import CLIReportInterface
 from altadb.utils.logging import assert_validation, logger
 
@@ -33,9 +33,9 @@ class CLIIReportController(CLIReportInterface):
     def handler(self, args: Namespace) -> None:
         """Handle report command."""
         self.args = args
-        project = CLIProject.from_path()
+        project = CLIDataset.from_path()
         assert_validation(project, "Not a valid project")
-        self.project = cast(CLIProject, project)
+        self.project = cast(CLIDataset, project)
 
         self.handle_report()
 

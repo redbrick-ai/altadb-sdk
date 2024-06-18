@@ -4,7 +4,7 @@ import os
 from typing import Dict, List
 from configparser import ConfigParser
 
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.utils.logging import assert_validation
 
 
@@ -64,10 +64,11 @@ class CLICredentials:
         return self.get_profile(self.selected_profile)["org"].strip().lower()
 
     @property
-    def context(self) -> RBContext:
+    def context(self) -> AltaDBContext:
         """Get SDK context."""
-        return RBContext(
+        return AltaDBContext(
             api_key=self.get_profile(self.selected_profile)["key"].strip(),
+            secret=self.get_profile(self.selected_profile)["secret"].strip(),
             url=self.get_profile(self.selected_profile)["url"].strip().rstrip("/"),
         )
 
@@ -83,7 +84,7 @@ class CLICredentials:
         return dict(self._creds[profile_name].items())
 
     def add_profile(
-        self, profile_name: str, api_key: str, org_id: str, url: str
+        self, profile_name: str, api_key: str, secret: str, org_id: str, url: str
     ) -> None:
         """Add profile to credentials."""
         assert_validation(
@@ -91,6 +92,7 @@ class CLICredentials:
         )
         self._creds[profile_name] = {
             "key": api_key.strip(),
+            "secret": secret.strip(),
             "org": org_id.strip().lower(),
             "url": url.strip().rstrip("/"),
         }

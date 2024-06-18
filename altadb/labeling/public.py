@@ -9,7 +9,7 @@ from copy import deepcopy
 
 import aiohttp
 
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.common.enums import StorageMethod
 from altadb.stage import Stage
 from altadb.types.taxonomy import Taxonomy
@@ -67,7 +67,7 @@ class Labeling:
 
     def __init__(
         self,
-        context: RBContext,
+        context: AltaDBContext,
         org_id: str,
         project_id: str,
         taxonomy: Taxonomy,

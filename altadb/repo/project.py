@@ -4,16 +4,16 @@ import json
 from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 
-from altadb.common.client import RBClient
-from altadb.common.project import ProjectRepoInterface
+from altadb.common.client import AltaDBClient
+from altadb.common.project import DatasetRepoInterface
 from altadb.repo.shards import PROJECT_SHARD, STAGE_SHARD, TAXONOMY_SHARD
 from altadb.types.taxonomy import Attribute, ObjectType, Taxonomy
 
 
-class ProjectRepo(ProjectRepoInterface):
+class DatasetRepo(DatasetRepoInterface):
     """Class to manage interaction with project APIs."""
 
-    def __init__(self, client: RBClient) -> None:
+    def __init__(self, client: AltaDBClient) -> None:
         """Construct ProjectRepo."""
         self.client = client
 
@@ -114,14 +114,20 @@ class ProjectRepo(ProjectRepoInterface):
     def get_org(self, org_id: str) -> Dict:
         """Get organization."""
         query = """
-            query getOrgSDK($orgId: UUID!) {
-                organization(orgId: $orgId){
-                    name
+            query Organization($orgId: UUID!) {
+                organization(orgId: $orgId) {
                     orgId
+                    name
+                    desc
+                    role
+                    createdAt
+                    status
+                    idProviders
                 }
             }
         """
         response: Dict[str, Dict] = self.client.execute_query(query, {"orgId": org_id})
+        print(response)
         return response["organization"]
 
     def get_projects(self, org_id: str) -> List[Dict]:

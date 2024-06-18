@@ -1,6 +1,7 @@
 """CLI Input params."""
 
-from altadb.cli.input.api_key import CLIInputAPIKey
+from altadb.cli.input.api_key import CLIInputAPIAccessKey
+from altadb.cli.input.api_secret import CLIInputAPISecretKey
 from altadb.cli.input.number import CLIInputNumber
 from altadb.cli.input.profile import CLIInputProfile
 from altadb.cli.input.select import CLIInputSelect

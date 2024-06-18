@@ -8,7 +8,7 @@ from uuid import uuid4
 from typing import List, Dict, TypeVar, Union, Optional, Sequence
 
 import aiohttp
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.common.enums import StorageMethod
 from altadb.types.taxonomy import Taxonomy
 from altadb.utils.common_utils import config_path
@@ -21,7 +21,7 @@ from altadb.types.task import InputTask, OutputTask
 
 
 async def validate_json(
-    context: RBContext,
+    context: AltaDBContext,
     input_data: List[InputTask],
     storage_id: str,
     concurrency: int,
@@ -72,7 +72,7 @@ T = TypeVar("T", InputTask, OutputTask)
 
 
 async def convert_rt_struct_to_nii_labels(
-    context: RBContext,
+    context: AltaDBContext,
     org_id: str,
     taxonomy: Taxonomy,
     tasks: List[T],
@@ -235,7 +235,7 @@ async def convert_rt_struct_to_nii_labels(
 
 
 async def process_segmentation_upload(
-    context: RBContext,
+    context: AltaDBContext,
     session: aiohttp.ClientSession,
     org_id: str,
     project_id: str,

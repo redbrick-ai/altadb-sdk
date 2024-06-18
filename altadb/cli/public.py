@@ -119,7 +119,7 @@ def cli_parser(
 ) -> Any:
     """Initialize argument parser."""
     parser = argparse.ArgumentParser(
-        description="The RedBrick CLI offers a simple interface to quickly import and "
+        description="The AltaDB CLI offers a simple interface to quickly import and "
         + "export your images & annotations, and perform other high-level actions."
     )
     parser.add_argument("-v", "--version", action="version", version=altadb.version())

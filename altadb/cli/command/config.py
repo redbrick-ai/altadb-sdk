@@ -11,15 +11,16 @@ from rich.box import ROUNDED
 from altadb import _populate_context
 from altadb.config import config
 from altadb.cli.input import (
-    CLIInputAPIKey,
+    CLIInputAPIAccessKey,
+    CLIInputAPISecretKey,
     CLIInputUUID,
     CLIInputURL,
     CLIInputProfile,
 )
-from altadb.cli.project import CLIProject
+from altadb.cli.project import CLIDataset
 from altadb.cli.cli_base import CLIConfigInterface
 from altadb.common.constants import DEFAULT_URL
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.organization import RBOrganization
 from altadb.utils.logging import assert_validation
 
@@ -33,6 +34,7 @@ class CLIConfigController(CLIConfigInterface):
 
         parser.add_argument("--org", "-o", help="Org ID")
         parser.add_argument("--key", "-k", help="API Key")
+        parser.add_argument("--secret", "-s", help="API Secret")
         parser.add_argument(
             "--url",
             "-u",
@@ -96,7 +98,7 @@ class CLIConfigController(CLIConfigInterface):
     def handler(self, args: Namespace) -> None:
         """Handle config command."""
         self.args = args
-        self.project = CLIProject(required=False)
+        self.project = CLIDataset(required=False)
 
         if not args.sub_command:
             self.handle_config()
@@ -183,13 +185,14 @@ class CLIConfigController(CLIConfigInterface):
     def handle_add(self) -> None:
         """Handle add sub command."""
         org_id = CLIInputUUID(self.args.org, "Org ID").get()
-        api_key = CLIInputAPIKey(self.args.key).get()
+        api_key = CLIInputAPIAccessKey(self.args.key).get()
+        secret = CLIInputAPISecretKey(self.args.secret).get()
         url = CLIInputURL(self.args.url).get()
         profile = CLIInputProfile(
             self.args.profile, self.project.creds.profile_names, True
         ).get()
 
-        self.project.creds.add_profile(profile, api_key, org_id, url)
+        self.project.creds.add_profile(profile, api_key, secret, org_id, url)
         self.handle_verify(profile)
 
         self.project.creds.set_default(profile)
@@ -225,8 +228,9 @@ class CLIConfigController(CLIConfigInterface):
 
         profile_details = self.project.creds.get_profile(profile)
         context = _populate_context(
-            RBContext(
+            AltaDBContext(
                 api_key=profile_details["key"].strip(),
+                secret=profile_details["secret"].strip(),
                 url=profile_details["url"].strip().rstrip("/"),
             )
         )

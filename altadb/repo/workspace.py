@@ -3,7 +3,7 @@
 import json
 from typing import Dict, List, Optional, Tuple
 
-from altadb.common.client import RBClient
+from altadb.common.client import AltaDBClient
 from altadb.common.workspace import WorkspaceRepoInterface
 from altadb.repo.shards import WORKSPACE_SHARD, datapoint_shard
 
@@ -11,7 +11,7 @@ from altadb.repo.shards import WORKSPACE_SHARD, datapoint_shard
 class WorkspaceRepo(WorkspaceRepoInterface):
     """Class to manage interaction with workspace APIs."""
 
-    def __init__(self, client: RBClient) -> None:
+    def __init__(self, client: AltaDBClient) -> None:
         """Construct WorkspaceRepo."""
         self.client = client
 

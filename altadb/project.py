@@ -10,14 +10,14 @@ from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_exponential
 from altadb.common.constants import PEERLESS_ERRORS
 
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.common.enums import StorageMethod
 from altadb.stage import Stage, LabelStage, ReviewStage, get_stage_objects
 from altadb.types.taxonomy import Taxonomy
 from altadb.utils.logging import logger
 
 
-class RBProject:
+class AltaDBDataset:
     """
     Representation of RedBrick project.
 
@@ -29,7 +29,7 @@ class RBProject:
         >>> project = redbrick.get_project(api_key="", org_id="", project_id="")
     """
 
-    def __init__(self, context: RBContext, org_id: str, project_id: str) -> None:
+    def __init__(self, context: AltaDBContext, org_id: str, project_id: str) -> None:
         """Construct RBProject."""
         # pylint: disable=import-outside-toplevel
         from altadb.upload import Upload

@@ -5,28 +5,28 @@ from typing import Optional
 from altadb.config import config
 
 
-class RBContext:
+class AltaDBContext:
     """Basic context for accessing low level functionality."""
 
-    def __init__(self, api_key: str, url: str) -> None:
+    def __init__(self, api_key: str, secret: str, url: str) -> None:
         """Construct RedBrick client singleton."""
         # pylint: disable=import-outside-toplevel
-        from .client import RBClient
+        from .client import AltaDBClient
         from .export import ExportControllerInterface
         from .upload import UploadControllerInterface
         from .labeling import LabelingControllerInterface
         from .settings import SettingsControllerInterface
-        from .project import ProjectRepoInterface
+        from .project import DatasetRepoInterface
         from .workspace import WorkspaceRepoInterface
 
         self.config = config
-        self.client = RBClient(api_key=api_key, url=url)
+        self.client = AltaDBClient(api_key=api_key, secret=secret, url=url)
 
         self.export: ExportControllerInterface
         self.upload: UploadControllerInterface
         self.labeling: LabelingControllerInterface
         self.settings: SettingsControllerInterface
-        self.project: ProjectRepoInterface
+        self.project: DatasetRepoInterface
         self.workspace: WorkspaceRepoInterface
 
         self._key_id: Optional[str] = None

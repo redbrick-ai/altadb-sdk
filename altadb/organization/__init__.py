@@ -8,8 +8,8 @@ import platform
 from tqdm import tqdm  # type: ignore
 
 from altadb.config import config
-from altadb.common.context import RBContext
-from altadb.project import RBProject
+from altadb.common.context import AltaDBContext
+from altadb.project import AltaDBDataset
 from altadb.types.taxonomy import Attribute, ObjectType, Taxonomy
 from altadb.workspace import RBWorkspace
 from altadb.stage import Stage, get_project_stages, get_middle_stages
@@ -32,7 +32,7 @@ class RBOrganization:
         >>> org = redbrick.get_org(api_key="", org_id="")
     """
 
-    def __init__(self, context: RBContext, org_id: str) -> None:
+    def __init__(self, context: AltaDBContext, org_id: str) -> None:
         """Construct RBOrganization."""
         self.context = context
 
@@ -68,11 +68,11 @@ class RBOrganization:
 
         return projects
 
-    def projects(self) -> List[RBProject]:
+    def projects(self) -> List[AltaDBDataset]:
         """Get a list of active projects in the organization."""
         projects = self.projects_raw()
         return [
-            RBProject(self.context, self._org_id, proj["projectId"])
+            AltaDBDataset(self.context, self._org_id, proj["projectId"])
             for proj in tqdm(projects, leave=config.log_info)
         ]
 
@@ -136,7 +136,7 @@ class RBOrganization:
         exists_okay: bool = False,
         workspace_id: Optional[str] = None,
         sibling_tasks: Optional[int] = None,
-    ) -> RBProject:
+    ) -> AltaDBDataset:
         """
         Create a project within the organization.
 
@@ -176,7 +176,9 @@ class RBOrganization:
             all_projects = self.projects_raw()
             same_name = list(filter(lambda x: x["name"] == name, all_projects))
             if same_name:
-                temp = RBProject(self.context, self.org_id, same_name[0]["projectId"])
+                temp = AltaDBDataset(
+                    self.context, self.org_id, same_name[0]["projectId"]
+                )
                 if temp.td_type != "DICOM_SEGMENTATION":
                     raise ValueError(
                         "Project with matching name exists, but it has a different type"
@@ -213,7 +215,7 @@ class RBOrganization:
                 + " return this project instead of creating a new one"
             ) from error
 
-        return RBProject(self.context, self.org_id, project_data["projectId"])
+        return AltaDBDataset(self.context, self.org_id, project_data["projectId"])
 
     def create_project(
         self,
@@ -223,7 +225,7 @@ class RBOrganization:
         exists_okay: bool = False,
         workspace_id: Optional[str] = None,
         sibling_tasks: Optional[int] = None,
-    ) -> RBProject:
+    ) -> AltaDBDataset:
         """
         Create a project within the organization.
 
@@ -270,7 +272,7 @@ class RBOrganization:
 
     def get_project(
         self, project_id: Optional[str] = None, name: Optional[str] = None
-    ) -> RBProject:
+    ) -> AltaDBDataset:
         """Get project by id/name."""
         projects = self.projects_raw()
         if project_id:
@@ -285,7 +287,7 @@ class RBOrganization:
         if not projects:
             raise Exception("No project found")
 
-        return RBProject(self.context, self._org_id, projects[0]["projectId"])
+        return AltaDBDataset(self.context, self._org_id, projects[0]["projectId"])
 
     def labeling_time(
         self, start_date: datetime, end_date: datetime, concurrency: int = 50

@@ -1,6 +1,6 @@
 """Public interface to settings module."""
 
-from altadb.common.context import RBContext
+from altadb.common.context import AltaDBContext
 from altadb.common.settings import LabelValidation, HangingProtocol, Webhook
 from altadb.types.taxonomy import Taxonomy
 
@@ -9,7 +9,7 @@ class Settings:
     """Primary interface to project settings."""
 
     def __init__(
-        self, context: RBContext, org_id: str, project_id: str, taxonomy: Taxonomy
+        self, context: AltaDBContext, org_id: str, project_id: str, taxonomy: Taxonomy
     ) -> None:
         """Construct Settings object."""
         self.context = context

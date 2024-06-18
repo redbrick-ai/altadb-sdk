@@ -2,7 +2,7 @@
 
 from typing import Dict
 
-from altadb.common.client import RBClient
+from altadb.common.client import AltaDBClient
 from altadb.common.settings import (
     SettingsControllerInterface,
     LabelValidation,
@@ -14,7 +14,7 @@ from altadb.common.settings import (
 class SettingsRepo(SettingsControllerInterface):
     """Class to manage interaction with project settings APIs."""
 
-    def __init__(self, client: RBClient) -> None:
+    def __init__(self, client: AltaDBClient) -> None:
         """Construct SettingsRepo."""
         self.client = client
 

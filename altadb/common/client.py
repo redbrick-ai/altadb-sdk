@@ -24,10 +24,10 @@ from altadb.common.constants import (
 from altadb.utils.logging import assert_validation, log_error, logger
 
 
-class RBClient:
+class AltaDBClient:
     """Client to communicate with RedBrick AI GraphQL Server."""
 
-    def __init__(self, api_key: str, url: str) -> None:
+    def __init__(self, api_key: str, secret: str, url: str) -> None:
         """Construct RBClient."""
         self.config = config
         self.url = (url or DEFAULT_URL).lower().rstrip("/")
@@ -43,21 +43,27 @@ class RBClient:
         self.session = requests.Session()
 
         self.api_key = api_key
-        assert_validation(
-            len(self.api_key) == 43,
-            "Invalid Api Key length, make sure you've copied it correctly",
-        )
+        self.secret_key = secret
+        # assert_validation(
+        #     len(self.api_key) == 43,
+        #     "Invalid Api Key length, make sure you've copied it correctly",
+        # )
 
     def __del__(self) -> None:
         """Garbage collect and close session."""
         self.session.close()
 
     @property
+    def gql_api_key(self) -> str:
+        """Get API key for graphql."""
+        return f"API:{self.api_key}:{self.secret_key}"
+
+    @property
     def headers(self) -> Dict:
         """Get request headers."""
         return {
             "RB-SDK-Version": sdk_version,
-            "ApiKey": self.api_key,
+            "ApiKey": self.gql_api_key,
             "Content-Type": "application/json",
             "Accept": "application/json",
             "Content-Encoding-RB": "gzip",

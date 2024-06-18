@@ -12,7 +12,7 @@ import shtab
 import tqdm  # type: ignore
 
 from altadb.config import config
-from altadb.cli.project import CLIProject
+from altadb.cli.project import CLIDataset
 from altadb.cli.cli_base import CLIExportInterface
 from altadb.common.constants import MAX_FILE_BATCH_SIZE
 from altadb.types.taxonomy import Taxonomy
@@ -122,9 +122,9 @@ class CLIExportController(CLIExportInterface):
     def handler(self, args: Namespace) -> None:
         """Handle export command."""
         self.args = args
-        project = CLIProject.from_path()
+        project = CLIDataset.from_path()
         assert_validation(project, "Not a valid project")
-        self.project = cast(CLIProject, project)
+        self.project = cast(CLIDataset, project)
 
         self.handle_export()
 

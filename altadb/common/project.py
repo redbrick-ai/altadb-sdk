@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 from altadb.types.taxonomy import Attribute, ObjectType, Taxonomy
 
 
-class ProjectRepoInterface(ABC):
+class DatasetRepoInterface(ABC):
     """Abstract interface to Project APIs."""
 
     @abstractmethod
