@@ -10,7 +10,7 @@ import shtab
 
 from altadb.cli.input.text import CLIInputText
 from altadb.cli.input.uuid import CLIInputUUID
-from altadb.cli.project import CLIDataset
+from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIInfoInterface
 from altadb.utils.logging import assert_validation, logger
 

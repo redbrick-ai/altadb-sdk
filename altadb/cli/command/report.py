@@ -6,7 +6,7 @@ from datetime import datetime
 from argparse import ArgumentError, ArgumentParser, Namespace
 from typing import cast
 
-from altadb.cli.project import CLIDataset
+from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIReportInterface
 from altadb.utils.logging import assert_validation, logger
 

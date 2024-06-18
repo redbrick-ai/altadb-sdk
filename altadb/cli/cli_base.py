@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from typing import Optional
 from argparse import Namespace
 
-from altadb.cli.project import CLIDataset
+from altadb.cli.dataset import CLIDataset
 from altadb.utils.logging import logger
 
 

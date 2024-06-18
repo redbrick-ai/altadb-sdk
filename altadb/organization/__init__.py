@@ -9,7 +9,7 @@ from tqdm import tqdm  # type: ignore
 
 from altadb.config import config
 from altadb.common.context import AltaDBContext
-from altadb.project import AltaDBDataset
+from altadb.dataset import AltaDBDataset
 from altadb.types.taxonomy import Attribute, ObjectType, Taxonomy
 from altadb.workspace import RBWorkspace
 from altadb.stage import Stage, get_project_stages, get_middle_stages

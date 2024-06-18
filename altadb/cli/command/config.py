@@ -17,7 +17,7 @@ from altadb.cli.input import (
     CLIInputURL,
     CLIInputProfile,
 )
-from altadb.cli.project import CLIDataset
+from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIConfigInterface
 from altadb.common.constants import DEFAULT_URL
 from altadb.common.context import AltaDBContext

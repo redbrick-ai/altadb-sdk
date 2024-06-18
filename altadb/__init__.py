@@ -15,7 +15,7 @@ from altadb.common.enums import (
 from altadb.common.constants import DEFAULT_URL
 from altadb.organization import RBOrganization
 from altadb.workspace import RBWorkspace
-from altadb.project import AltaDBDataset
+from altadb.dataset import AltaDBDataset
 from altadb.stage import Stage, LabelStage, ReviewStage, ModelStage
 
 from altadb.utils.logging import logger

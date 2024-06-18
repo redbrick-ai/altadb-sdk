@@ -9,7 +9,7 @@ from altadb import _populate_context
 from altadb.config import config
 from altadb.common.context import AltaDBContext
 from altadb.organization import RBOrganization
-from altadb.project import AltaDBDataset
+from altadb.dataset import AltaDBDataset
 from altadb.cli.entity import CLICache, CLIConfiguration, CLICredentials
 from altadb.utils.common_utils import config_path
 from altadb.utils.logging import assert_validation, logger

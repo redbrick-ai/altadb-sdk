@@ -16,7 +16,7 @@ class AltaDBContext:
         from .upload import UploadControllerInterface
         from .labeling import LabelingControllerInterface
         from .settings import SettingsControllerInterface
-        from .project import DatasetRepoInterface
+        from .dataset import DatasetRepoInterface
         from .workspace import WorkspaceRepoInterface
 
         self.config = config

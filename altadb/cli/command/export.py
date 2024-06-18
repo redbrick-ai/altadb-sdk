@@ -12,7 +12,7 @@ import shtab
 import tqdm  # type: ignore
 
 from altadb.config import config
-from altadb.cli.project import CLIDataset
+from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIExportInterface
 from altadb.common.constants import MAX_FILE_BATCH_SIZE
 from altadb.types.taxonomy import Taxonomy

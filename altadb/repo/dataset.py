@@ -5,7 +5,7 @@ from typing import List, Dict, Tuple, Optional
 from datetime import datetime
 
 from altadb.common.client import AltaDBClient
-from altadb.common.project import DatasetRepoInterface
+from altadb.common.dataset import DatasetRepoInterface
 from altadb.repo.shards import PROJECT_SHARD, STAGE_SHARD, TAXONOMY_SHARD
 from altadb.types.taxonomy import Attribute, ObjectType, Taxonomy
 

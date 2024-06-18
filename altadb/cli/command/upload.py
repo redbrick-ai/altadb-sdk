@@ -8,7 +8,7 @@ from argparse import ArgumentError, ArgumentParser, Namespace
 from typing import List, Dict, Optional, Union, cast
 
 from altadb.cli.input.select import CLIInputSelect
-from altadb.cli.project import CLIDataset
+from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIUploadInterface
 from altadb.common.enums import StorageMethod, ImportTypes
 from altadb.utils.logging import assert_validation, logger

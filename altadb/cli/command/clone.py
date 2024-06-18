@@ -8,10 +8,10 @@ from rich.console import Console
 
 from altadb.config import config
 from altadb.cli.input.select import CLIInputSelect
-from altadb.cli.project import CLIDataset
+from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLICloneInterface
 from altadb.organization import RBOrganization
-from altadb.project import AltaDBDataset
+from altadb.dataset import AltaDBDataset
 from altadb.utils.logging import assert_validation
 
 
