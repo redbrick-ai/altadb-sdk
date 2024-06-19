@@ -13,7 +13,7 @@ from altadb.common.enums import (
     TaskFilters,
 )
 from altadb.common.constants import DEFAULT_URL
-from altadb.organization import RBOrganization
+from altadb.organization import AltaDBOrganization
 from altadb.dataset import AltaDBDataset
 
 from altadb.utils.logging import logger
@@ -78,7 +78,7 @@ def _populate_context(context: AltaDBContext) -> AltaDBContext:
 
 def get_org(
     org_id: str, api_key: str, secret: str, url: str = DEFAULT_URL
-) -> RBOrganization:
+) -> AltaDBOrganization:
     """
     Get an existing redbrick organization object.
 
@@ -99,7 +99,7 @@ def get_org(
         Should default to https://api.redbrickai.com
     """
     context = _populate_context(AltaDBContext(api_key=api_key, secret=secret, url=url))
-    return RBOrganization(context, org_id)
+    return AltaDBOrganization(context, org_id)
 
 
 def get_project(
@@ -146,7 +146,7 @@ __all__ = [
     "LabelStage",
     "ReviewStage",
     "ModelStage",
-    "RBOrganization",
+    "AltaDBOrganization",
     "RBWorkspace",
     "AltaDBDataset",
     "get_org",

@@ -21,7 +21,7 @@ from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIConfigInterface
 from altadb.common.constants import DEFAULT_URL
 from altadb.common.context import AltaDBContext
-from altadb.organization import RBOrganization
+from altadb.organization import AltaDBOrganization
 from altadb.utils.logging import assert_validation
 
 
@@ -240,7 +240,7 @@ class CLIConfigController(CLIConfigInterface):
         console = Console()
         with console.status("Fetching organization") as status:
             try:
-                org = RBOrganization(context, profile_details["org"])
+                org = AltaDBOrganization(context, profile_details["org"])
             except Exception as error:
                 status.stop()
                 raise error

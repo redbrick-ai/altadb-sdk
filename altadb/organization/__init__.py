@@ -6,11 +6,11 @@ import platform
 from altadb.common.context import AltaDBContext
 
 
-class RBOrganization:
+class AltaDBOrganization:
     """
     Representation of RedBrick organization.
 
-    The :attr:`redbrick.organization.RBOrganization` object allows you to programmatically interact with
+    The :attr:`altadb.organization.AltaDBOrganization` object allows you to programmatically interact with
     your RedBrick organization. This class provides methods for querying your
     organization and doing other high level actions. Retrieve the organization object in the following way:
 
@@ -20,7 +20,7 @@ class RBOrganization:
     """
 
     def __init__(self, context: AltaDBContext, org_id: str) -> None:
-        """Construct RBOrganization."""
+        """Construct AltaDBOrganization."""
         self.context = context
 
         self._org_id = org_id
@@ -43,7 +43,7 @@ class RBOrganization:
         return self._name
 
     def __str__(self) -> str:
-        """Get string representation of RBOrganization object."""
+        """Get string representation of AltaDBOrganization object."""
         return f"RedBrick AI Organization - {self._name} - ( {self._org_id} )"
 
     def __repr__(self) -> str:

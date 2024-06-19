@@ -1,4 +1,4 @@
 include LICENSE
-recursive-include redbrick *.py
+recursive-include altadb *.py
 include setup.py
 exclude examples

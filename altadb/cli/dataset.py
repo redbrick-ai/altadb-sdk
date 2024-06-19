@@ -8,7 +8,7 @@ from rich.console import Console
 from altadb import _populate_context
 from altadb.config import config
 from altadb.common.context import AltaDBContext
-from altadb.organization import RBOrganization
+from altadb.organization import AltaDBOrganization
 from altadb.dataset import AltaDBDataset
 from altadb.cli.entity import CLICache, CLIConfiguration, CLICredentials
 from altadb.utils.common_utils import config_path
@@ -25,7 +25,7 @@ class CLIDataset:
     cache: CLICache
 
     _context: Optional[AltaDBContext] = None
-    _org: Optional[RBOrganization] = None
+    _org: Optional[AltaDBOrganization] = None
     _project: Optional[AltaDBDataset] = None
 
     def __init__(self, path: str = ".", required: bool = True) -> None:
@@ -97,13 +97,13 @@ class CLIDataset:
         return cast(str, value).strip().lower()
 
     @property
-    def org(self) -> RBOrganization:
+    def org(self) -> AltaDBOrganization:
         """Get org object."""
         if not self._org:
             console = Console()
             with console.status("Fetching organization") as status:
                 try:
-                    self._org = RBOrganization(self.context, self.org_id)
+                    self._org = AltaDBOrganization(self.context, self.org_id)
                 except Exception as error:
                     status.stop()
                     raise error
@@ -128,7 +128,9 @@ class CLIDataset:
                 console.print("[bold green]" + str(self._project))
         return self._project
 
-    def initialize_project(self, org: RBOrganization, project: AltaDBDataset) -> None:
+    def initialize_project(
+        self, org: AltaDBOrganization, project: AltaDBDataset
+    ) -> None:
         """Initialize local project."""
         assert_validation(
             not os.path.isdir(self._rb_dir), f"Already a RedBrick project {self.path}"
