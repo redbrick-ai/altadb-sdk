@@ -1,23 +1,22 @@
 """CLI upload command."""
 
 import os
-import re
-import json
 import asyncio
-from argparse import ArgumentError, ArgumentParser, Namespace
-from typing import List, Dict, Optional, Union, cast
+from argparse import ArgumentParser, Namespace
+from typing import cast
 
-from altadb.cli.input.select import CLIInputSelect
 from altadb.cli.dataset import CLIDataset
 from altadb.repo.dataset import DatasetRepo
 from altadb.cli.cli_base import CLIUploadInterface
-from altadb.common.enums import StorageMethod, ImportTypes
-from altadb.utils.logging import assert_validation, logger
-from altadb.utils.files import find_files_recursive
-from altadb.types.task import InputTask
-
-from .upload_file_to_presigned_url import upload_file_to_presigned_url
-from .file_upload_mutation import file_upload_mutation
+from altadb.common.enums import ImportTypes
+from altadb.utils.async_utils import gather_with_concurrency
+from altadb.utils.logging import logger
+from altadb.utils.files import (
+    DICOM_FILE_TYPES,
+    find_files_recursive,
+    get_file_type,
+    upload_files,
+)
 
 
 class CLIUploadController(CLIUploadInterface):
@@ -35,6 +34,12 @@ class CLIUploadController(CLIUploadInterface):
         parser.add_argument(
             "path",
             help="The path containing files to upload to the project",
+        )
+        parser.add_argument(
+            "-n",
+            "--name",
+            dest="name",
+            help="Import name",
         )
         parser.add_argument(
             "-c",
@@ -133,11 +138,14 @@ but may increase the upload time.""",
         """Handle empty sub command."""
         # pylint: disable=protected-access, too-many-branches, too-many-locals, too-many-statements
         # pylint: disable=too-many-nested-blocks
+        from .generate_import_label import generate_import_label
+
         logger.debug("Uploading data to project")
         project = self.project
         concurrency = self.args.concurrency
         org_id = self.org_id
         dataset_name = self.dataset_name
+        import_name = self.args.name or generate_import_label()
 
         path = os.path.normpath(self.args.path)
         api_key = self.project.context.client.gql_api_key
@@ -149,24 +157,14 @@ but may increase the upload time.""",
                 API Key: {api_key}
               """
         )
-        from .generate_import_label import generate_import_label
-        from .generate_import_id import generate_import_id
-        from .generate_presigned_urls import generate_presigned_urls
-
-        def check_dicom_file(extension: list[str], filename: str) -> bool:
-            return any(filename.lower().endswith(ext) for ext in extension)
 
         files: list[str] = []
         if os.path.isdir(path):
-            print("Given path is a directory")
-            # Recursively get all files in the directory, and find out the dicom files
-            dicom_file_extensions = [".dcm", ".dicom", ".dicm", ".dic"]
-            for root, _, filenames in os.walk(path):
-                for filename in filenames:
-                    if check_dicom_file(
-                        extension=dicom_file_extensions, filename=filename
-                    ):
-                        files.append(os.path.join(root, filename))
+            _files = find_files_recursive(
+                path, set(DICOM_FILE_TYPES.keys()), multiple=False
+            )
+            print(_files)
+            files = [_file[0] for _file in _files if _file]
 
         else:
             files = [path]
@@ -183,7 +181,6 @@ but may increase the upload time.""",
                     "fileType": "application/dicom",
                 }
             )
-        import_name = generate_import_label()
         ds_repo = DatasetRepo(client=self.project.context.client)
         import_id: str = (
             (
@@ -224,11 +221,16 @@ but may increase the upload time.""",
             if presigned_urls:
                 print("Presigned URLs generated successfully")
                 # Upload files to presigned URLs
-                upload_status = upload_files_intermediate_function(
-                    files_paths=files_list,
-                    presigned_urls=presigned_urls,
-                    concurrency=concurrency,
+                upload_status = asyncio.run(
+                    upload_files_intermediate_function(
+                        files_paths=files_list,
+                        presigned_urls=presigned_urls,
+                        concurrency=concurrency,
+                    )
                 )
+                if not upload_status:
+                    print("Error uploading files")
+                    return
                 mutation_status = ds_repo.process_import(
                     org_id=org_id,
                     data_store=dataset_name,
@@ -248,28 +250,28 @@ but may increase the upload time.""",
             return
 
 
-def upload_files_intermediate_function(
+async def upload_files_intermediate_function(
     files_paths: list[dict[str, str]],
     presigned_urls: list[str],
     concurrency: int,
 ) -> bool:
-    results: list[bool] = []
-    semaphore = asyncio.Semaphore(concurrency)
-    if len(files_paths) != len(presigned_urls):
-        print("Number of files and presigned URLs do not match")
-        return False
-    for i in range(0, len(files_paths), concurrency):
-        loop = asyncio.get_event_loop()
-        tasks = [
-            upload_file_to_presigned_url(
-                file_paths=files_paths[i : i + concurrency],
-                presigned_urls=presigned_urls[i : i + concurrency],
-                semaphore=semaphore,
-            )
-        ]
-        _results = loop.run_until_complete(asyncio.gather(*tasks))
-        if not all(_results):
-            return False
-        else:
-            results.extend(_results)
-    return True
+    coros = [
+        upload_files(
+            [
+                (
+                    file_path["abs_file_path"],
+                    presigned_url,
+                    get_file_type(file_path["abs_file_path"])[-1],
+                )
+                for file_path, presigned_url in zip(files_paths, presigned_urls)
+            ],
+        )
+    ]
+    results = await gather_with_concurrency(
+        max_concurrency=concurrency,
+        tasks=coros,
+        progress_bar_name="Uploading files",
+        keep_progress_bar=True,
+        return_exceptions=False,
+    )
+    return all(results)
