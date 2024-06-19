@@ -138,7 +138,7 @@ but may increase the upload time.""",
         """Handle empty sub command."""
         # pylint: disable=protected-access, too-many-branches, too-many-locals, too-many-statements
         # pylint: disable=too-many-nested-blocks
-        from ....utils.dataset import generate_import_label
+        from altadb.utils.dataset import generate_import_label
 
         logger.debug("Uploading data to project")
         project = self.project
