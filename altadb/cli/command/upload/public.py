@@ -9,6 +9,7 @@ from typing import List, Dict, Optional, Union, cast
 
 from altadb.cli.input.select import CLIInputSelect
 from altadb.cli.dataset import CLIDataset
+from altadb.repo.dataset import DatasetRepo
 from altadb.cli.cli_base import CLIUploadInterface
 from altadb.common.enums import StorageMethod, ImportTypes
 from altadb.utils.logging import assert_validation, logger
@@ -182,22 +183,44 @@ but may increase the upload time.""",
                     "fileType": "application/dicom",
                 }
             )
-
-        import_id = generate_import_id(
-            apikey=api_key,
-            org_id=self.org_id,
-            dataset_name=self.dataset_name,
-            import_name=generate_import_label(),
-        )
+        import_name = generate_import_label()
+        ds_repo = DatasetRepo(client=self.project.context.client)
+        import_id: str = (
+            (
+                (
+                    ds_repo.import_files(
+                        org_id=org_id,
+                        data_store=dataset_name,
+                        import_name=import_name,
+                    )
+                    or {}
+                ).get("importFiles")
+                or {}
+            ).get("dataStoreImport")
+            or {}
+        ).get("importId") or ""
         if import_id:
             # Generate presigned URLs
-            presigned_urls = generate_presigned_urls(
-                apikey=api_key,
-                org_id=self.org_id,
-                dataset_name=self.dataset_name,
-                import_id=import_id,
-                files=files_list,
-            )
+            print(f"Got import id: {import_id}")
+            presigned_urls = (
+                (
+                    ds_repo.import_files(
+                        org_id=org_id,
+                        data_store=dataset_name,
+                        import_name=import_name,
+                        import_id=import_id,
+                        files=[
+                            {
+                                "filePath": file["filePath"],
+                                "fileType": file["fileType"],
+                            }
+                            for file in files_list
+                        ],
+                    )
+                    or {}
+                ).get("importFiles")
+                or {}
+            ).get("urls") or []
             if presigned_urls:
                 print("Presigned URLs generated successfully")
                 # Upload files to presigned URLs
@@ -206,8 +229,7 @@ but may increase the upload time.""",
                     presigned_urls=presigned_urls,
                     concurrency=concurrency,
                 )
-                mutation_status = file_upload_mutation(
-                    api_key=api_key,
+                mutation_status = ds_repo.process_import(
                     org_id=org_id,
                     data_store=dataset_name,
                     import_id=import_id,
