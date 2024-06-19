@@ -147,6 +147,4 @@ class CLIDataset:
         self._org = org
         self._project = project
 
-        logger.info(
-            f"Successfully initialized {project} in {self.path}\nURL: {project.url}"
-        )
+        logger.info(f"Successfully initialized {project} in {self.path}\n")

@@ -6,12 +6,6 @@ import asyncio
 import nest_asyncio  # type: ignore
 
 from altadb.common.context import AltaDBContext
-from altadb.common.enums import (
-    StorageMethod,
-    ImportTypes,
-    TaskEventTypes,
-    TaskFilters,
-)
 from altadb.common.constants import DEFAULT_URL
 from altadb.organization import AltaDBOrganization
 from altadb.dataset import AltaDBDataset
@@ -19,7 +13,6 @@ from altadb.dataset import AltaDBDataset
 from altadb.utils.logging import logger
 from altadb.utils.common_utils import config_migration
 
-from altadb.types import task as TaskTypes, taxonomy as TaxonomyTypes
 
 from .config import config
 from .version_check import version_check
@@ -70,7 +63,7 @@ def _populate_context(context: AltaDBContext) -> AltaDBContext:
     )
 
     if context.config.debug:
-        logger.debug(f"Using: redbrick-sdk=={__version__}")
+        logger.debug(f"Using: altadb-sdk=={__version__}")
 
     context.project = DatasetRepo(context.client)
     return context
@@ -80,55 +73,58 @@ def get_org(
     org_id: str, api_key: str, secret: str, url: str = DEFAULT_URL
 ) -> AltaDBOrganization:
     """
-    Get an existing redbrick organization object.
+    Get an existing altadb organization object.
 
     Organization object allows you to interact with your organization
     and perform high level actions like creating a project.
 
-    >>> org = redbrick.get_org(org_id, api_key)
+    >>> org = altadb.get_org(org_id, api_key)
 
     Parameters
     ---------------
     org_id: str
-        Your organizations unique id https://app.redbrickai.com/<org_id>/.
+        Your organizations unique id https://altadb.com/<org_id>/.
 
     api_key: str
-        Your secret api_key, can be created from the RedBrick AI platform.
+        Your secret api_key, can be created from the AltaDB platform.
 
     url: str = DEFAULT_URL
-        Should default to https://api.redbrickai.com
+        Should default to https://altadb.com
     """
     context = _populate_context(AltaDBContext(api_key=api_key, secret=secret, url=url))
     return AltaDBOrganization(context, org_id)
 
 
-def get_project(
-    org_id: str, project_id: str, api_key: str, secret: str, url: str = DEFAULT_URL
+def get_dataset(
+    org_id: str, dataset: str, api_key: str, secret: str, url: str = DEFAULT_URL
 ) -> AltaDBDataset:
     """
     Get an existing RedBrick project object.
 
-    Project objects allow you to interact with your RedBrick Ai projects,
+    Project objects allow you to interact with your AltaDB projects,
     and perform actions like importing data, exporting data etc.
 
-    >>> project = redbrick.get_project(org_id, project_id, api_key)
+    >>> project = altadb.get_dataset(org_id, project_id, api_key)
 
     Parameters
     ---------------
     org_id: str
         Your organizations unique id https://app.redbrickai.com/<org_id>/
 
-    project_id: str
+    dataset: str
         Your projects unique id https://app.redbrickai.com/<org_id>/<project_id>/
 
     api_key: str
-        Your secret api_key, can be created from the RedBrick AI platform.
+        Your visible api_key, can be created from the AltaDB platform.
+
+    secret: str
+        Your secret key, can be created from the AltaDB platform.
 
     url: str = DEFAULT_URL
-        Should default to https://api.redbrickai.com
+        Should default to https://preview.altadb.com
     """
     context = _populate_context(AltaDBContext(api_key=api_key, secret=secret, url=url))
-    return AltaDBDataset(context, org_id, project_id)
+    return AltaDBDataset(context, org_id, dataset)
 
 
 __all__ = [
@@ -136,20 +132,8 @@ __all__ = [
     "config",
     "version",
     "AltaDBContext",
-    "StorageMethod",
-    "ImportTypes",
-    "TaxonomyTypes",
-    "TaskTypes",
-    "TaskEventTypes",
-    "TaskFilters",
-    "Stage",
-    "LabelStage",
-    "ReviewStage",
-    "ModelStage",
     "AltaDBOrganization",
-    "RBWorkspace",
     "AltaDBDataset",
     "get_org",
-    "get_workspace",
-    "get_project",
+    "get_dataset",
 ]

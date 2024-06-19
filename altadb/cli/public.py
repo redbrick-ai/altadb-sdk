@@ -33,8 +33,8 @@ class CLIController(CLIInterface):
         self.upload = CLIUploadController(
             command.add_parser(
                 self.UPLOAD,
-                help="Upload files to a project",
-                description="Upload files to a project",
+                help="Upload files to a dataset",
+                description="Upload files to a dataset",
             )
         )
         self.list = CLIListController(

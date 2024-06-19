@@ -25,7 +25,7 @@ from altadb.utils.logging import assert_validation, log_error, logger
 
 
 class AltaDBClient:
-    """Client to communicate with RedBrick AI GraphQL Server."""
+    """Client to communicate with AltaDB GraphQL Server."""
 
     def __init__(self, api_key: str, secret: str, url: str) -> None:
         """Construct RBClient."""

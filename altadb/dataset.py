@@ -1,4 +1,4 @@
-"""Interface for interacting with your RedBrick AI Projects."""
+"""Interface for interacting with your AltaDB Projects."""
 
 from typing import Dict, List
 
@@ -7,21 +7,21 @@ from altadb.common.context import AltaDBContext
 
 class AltaDBDataset:
     """
-    Representation of RedBrick project.
+    Representation of an AltaDB dataset.
 
-    The :attr:`redbrick.project.RBProject` object allows you to programmatically interact with
-    your RedBrick project. You can upload data, assign tasks, and query your data with this object. Retrieve the project object in the following way:
+    The :attr:`altadb.dataset.AltaDBDataset` object allows you to programmatically interact with
+    your AltaDB dataset. You can upload data. Retrieve the project object in the following way:
 
     .. code:: python
 
-        >>> project = redbrick.get_project(api_key="", org_id="", project_id="")
+        >>> project = altadb.get_dataset(org_id="", dataset="", api_key="", secret="", url="")
     """
 
-    def __init__(self, context: AltaDBContext, org_id: str, project_id: str) -> None:
+    def __init__(self, context: AltaDBContext, org_id: str, dataset: str) -> None:
         """Construct RBProject."""
         self.context = context
         self._org_id = org_id
-        self._project_id = project_id
+        self._dataset = dataset
 
     @property
     def org_id(self) -> str:
@@ -39,7 +39,7 @@ class AltaDBDataset:
 
         Retrieves the unique Project ID UUID.
         """
-        return self._project_id
+        return self._dataset
 
     @property
     def members(self) -> List[Dict]:
@@ -65,3 +65,8 @@ class AltaDBDataset:
     def __repr__(self) -> str:
         """Representation of object."""
         return str(self)
+
+    @property
+    def name(self) -> str:
+        """Retrieve unique name of this project."""
+        return self._dataset

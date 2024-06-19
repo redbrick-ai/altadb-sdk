@@ -136,9 +136,7 @@ class CLIConfigController(CLIConfigInterface):
         default_profile: str = self.project.creds.selected_profile
         profiles: List[str] = self.project.creds.profile_names
         rows: List[List[str]] = []
-        table = Table(
-            title="[bold green]RedBrick AI Profiles", expand=True, box=ROUNDED
-        )
+        table = Table(title="[bold green]AltaDB Profiles", expand=True, box=ROUNDED)
         columns_set = False
         for profile in profiles:
             if not columns_set:

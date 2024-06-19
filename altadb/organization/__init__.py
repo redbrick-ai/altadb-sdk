@@ -16,7 +16,7 @@ class AltaDBOrganization:
 
     .. code:: python
 
-        >>> org = redbrick.get_org(api_key="", org_id="")
+        >>> org = altadb.get_org(api_key="", org_id="")
     """
 
     def __init__(self, context: AltaDBContext, org_id: str) -> None:
@@ -44,7 +44,7 @@ class AltaDBOrganization:
 
     def __str__(self) -> str:
         """Get string representation of AltaDBOrganization object."""
-        return f"RedBrick AI Organization - {self._name} - ( {self._org_id} )"
+        return f"AltaDB Organization - {self._name} - ( {self._org_id} )"
 
     def __repr__(self) -> str:
         """Representation of object."""
