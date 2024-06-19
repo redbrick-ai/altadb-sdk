@@ -45,7 +45,7 @@ class CLIUploadController(CLIUploadInterface):
             "-c",
             "--concurrency",
             type=int,
-            default=2,
+            default=10,
             help="Concurrency value (Default: 10)",
         )
 
@@ -53,10 +53,9 @@ class CLIUploadController(CLIUploadInterface):
         """Handle upload command."""
         self.args = args
         project = CLIDataset(required=False)
-        org_id = project.creds.org_id
         # assert_validation(project, "Not a valid project")
         self.project = cast(CLIDataset, project)
-        self.org_id = org_id
+        self.org_id = project.creds.org_id
         self.dataset_name = args.dataset
         self.handle_upload()
 
@@ -66,11 +65,6 @@ class CLIUploadController(CLIUploadInterface):
         # pylint: disable=too-many-nested-blocks
         from altadb.utils.dataset import generate_import_label
 
-        logger.debug("Uploading data to project")
-        project = self.project
-        concurrency = self.args.concurrency
-        org_id = self.org_id
-        dataset_name = self.dataset_name
         import_name = self.args.name or generate_import_label()
 
         path = os.path.normpath(self.args.path)
@@ -112,8 +106,8 @@ class CLIUploadController(CLIUploadInterface):
             (
                 (
                     ds_repo.import_files(
-                        org_id=org_id,
-                        data_store=dataset_name,
+                        org_id=self.org_id,
+                        data_store=self.dataset_name,
                         import_name=import_name,
                     )
                     or {}
@@ -128,8 +122,8 @@ class CLIUploadController(CLIUploadInterface):
             presigned_urls = (
                 (
                     ds_repo.import_files(
-                        org_id=org_id,
-                        data_store=dataset_name,
+                        org_id=self.org_id,
+                        data_store=self.dataset_name,
                         import_name=import_name,
                         import_id=import_id,
                         files=[
@@ -151,15 +145,15 @@ class CLIUploadController(CLIUploadInterface):
                     upload_files_intermediate_function(
                         files_paths=files_list,
                         presigned_urls=presigned_urls,
-                        concurrency=concurrency,
+                        concurrency=self.args.concurrency,
                     )
                 )
                 if not upload_status:
                     print("Error uploading files")
                     return
                 mutation_status = ds_repo.process_import(
-                    org_id=org_id,
-                    data_store=dataset_name,
+                    org_id=self.org_id,
+                    data_store=self.dataset_name,
                     import_id=import_id,
                     total_files=len(files),
                 )
