@@ -35,6 +35,50 @@ class DatasetRepo(DatasetRepoInterface):
         )
         return response["dataStores"]
 
+    def check_if_exists(self, org_id: str, dataset_name: str) -> bool:
+        query = f"""
+        query DataStore($orgId: UUID!) {{
+            dataStores(orgId: $orgId) {{
+                orgId
+                name
+                displayName
+                createdAt
+                createdBy
+                status
+                updatedAt
+                importStatuses
+            }}
+        }}
+        """
+        variables = {"orgId": org_id}
+        response: Dict[str, Dict] = self.client.execute_query(query, variables)
+        return any(
+            dataset["displayName"] == dataset_name for dataset in response["dataStores"]
+        )
+
+    def create_dataset(self, org_id: str, dataset_name: str) -> Dict:
+        query = f"""
+            mutation sdkCreateDatastore($orgId: UUID!, $dataStore: String!, $displayName: String!) {{
+                createDatastore(orgId: $orgId, dataStore: $dataStore, displayName: $displayName) {{
+                    orgId
+                    name
+                    displayName
+                    createdAt
+                    createdBy
+                    status
+                    updatedAt
+                    importStatuses
+                }}
+            }}
+        """
+        variables = {
+            "orgId": org_id,
+            "dataStore": dataset_name,
+            "displayName": dataset_name,
+        }
+        response: Dict[str, Dict] = self.client.execute_query(query, variables)
+        return response["createDatastore"]
+
     def get_project(self, org_id: str, project_id: str) -> Dict:
         """
         Get project name and status.

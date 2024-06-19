@@ -85,7 +85,7 @@ class CLIInputParams(ABC):
         return None
 
 
-class CLIConfigInterface(ABC):
+class CLIConfigInterface(AbstractCLI):
     """CLI config command interface."""
 
     args: Namespace
@@ -131,7 +131,7 @@ class CLIConfigInterface(ABC):
         """Handle verify sub command."""
 
 
-class CLIUploadInterface(ABC):
+class CLIUploadInterface(AbstractCLI):
     """CLI upload interface."""
 
     args: Namespace
@@ -159,6 +159,8 @@ class CLIInterface(ABC):
     CONFIG = "config"
     UPLOAD = "upload"
     LIST = "list"
+    QUERY = "query"
+    CREATE = "create"
 
     @abstractmethod
     def handle_command(self, args: Namespace) -> None:

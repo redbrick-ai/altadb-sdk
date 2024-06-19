@@ -11,6 +11,8 @@ from altadb.cli.command import (
     CLIConfigController,
     CLIUploadController,
     CLIListController,
+    CLIQueryController,
+    CLICreateController,
 )
 from altadb.cli.cli_base import CLIInterface
 from altadb.utils.logging import logger
@@ -42,6 +44,20 @@ class CLIController(CLIInterface):
                 description="List all datasets",
             )
         )
+        self.query = CLIQueryController(
+            command.add_parser(
+                self.QUERY,
+                help="Query a dataset",
+                description="Query a dataset",
+            )
+        )
+        self.create = CLICreateController(
+            command.add_parser(
+                self.CREATE,
+                help="Create a dataset",
+                description="Create a dataset",
+            )
+        )
 
     def handle_command(self, args: argparse.Namespace) -> None:
         """CLI command main handler."""
@@ -51,6 +67,10 @@ class CLIController(CLIInterface):
             self.upload.handler(args)
         elif args.command == self.LIST:
             self.list.handler(args)
+        elif args.command == self.QUERY:
+            self.query.handler(args)
+        elif args.command == self.CREATE:
+            self.create.handler(args)
         else:
             raise argparse.ArgumentError(None, "")
 
