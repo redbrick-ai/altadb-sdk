@@ -1,6 +1,22 @@
-This is an SDK to make integration with the RedBrick AI platform as easy as possible. This includes uploading and downloading data
-as well as making your datasets easily available for training. Use this SDK to access your data and labels anywhere you run your code, whether that is on the cloud or locally with a Jupyter Notebook.
+# AltaDB SDK
 
-Please feel free to submit issues on github or at [support@redbrickai.com](mailto:support@redbrickai.com) if you run into any problems or have suggestions.
+## Example Usage
 
-Visit [docs](https://sdk.redbrickai.com) for tutorials on how to use this library.
+### Set up configuration
+
+```sh
+altadb config add
+```
+- Above command will prompt you to enter the following details:
+    - Org ID
+    - API Key
+    - API Secret
+    - API URL
+
+
+### Upload a file
+
+- `path` can be a file or a directory. In case of a directory, all files in the directory will be uploaded recursively.
+```sh
+altadb upload <dataset> <path>
+```
