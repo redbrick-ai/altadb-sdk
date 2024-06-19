@@ -21,8 +21,8 @@ from altadb import __version__ as sdk_version  # noqa: E402
 
 # -- Project information -----------------------------------------------------
 
-project = "RedBrick AI"
-copyright = "2023, RedBrick AI"  # pylint: disable=redefined-builtin
+project = "AltaDB"
+copyright = "2023, AltaDB"  # pylint: disable=redefined-builtin
 author = "RedBrick AI"
 
 version = sdk_version
