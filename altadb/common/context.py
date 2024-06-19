@@ -12,22 +12,14 @@ class AltaDBContext:
         """Construct RedBrick client singleton."""
         # pylint: disable=import-outside-toplevel
         from .client import AltaDBClient
-        from .export import ExportControllerInterface
         from .upload import UploadControllerInterface
-        from .labeling import LabelingControllerInterface
-        from .settings import SettingsControllerInterface
         from .dataset import DatasetRepoInterface
-        from .workspace import WorkspaceRepoInterface
 
         self.config = config
         self.client = AltaDBClient(api_key=api_key, secret=secret, url=url)
 
-        self.export: ExportControllerInterface
         self.upload: UploadControllerInterface
-        self.labeling: LabelingControllerInterface
-        self.settings: SettingsControllerInterface
         self.project: DatasetRepoInterface
-        self.workspace: WorkspaceRepoInterface
 
         self._key_id: Optional[str] = None
 

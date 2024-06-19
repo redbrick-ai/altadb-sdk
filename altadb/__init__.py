@@ -14,9 +14,7 @@ from altadb.common.enums import (
 )
 from altadb.common.constants import DEFAULT_URL
 from altadb.organization import RBOrganization
-from altadb.workspace import RBWorkspace
 from altadb.dataset import AltaDBDataset
-from altadb.stage import Stage, LabelStage, ReviewStage, ModelStage
 
 from altadb.utils.logging import logger
 from altadb.utils.common_utils import config_migration
@@ -68,23 +66,15 @@ def version() -> str:
 def _populate_context(context: AltaDBContext) -> AltaDBContext:
     # pylint: disable=import-outside-toplevel
     from altadb.repo import (
-        ExportRepo,
-        LabelingRepo,
         UploadRepo,
-        SettingsRepo,
         DatasetRepo,
-        WorkspaceRepo,
     )
 
     if context.config.debug:
         logger.debug(f"Using: redbrick-sdk=={__version__}")
 
-    context.export = ExportRepo(context.client)
-    context.labeling = LabelingRepo(context.client)
     context.upload = UploadRepo(context.client)
-    context.settings = SettingsRepo(context.client)
     context.project = DatasetRepo(context.client)
-    context.workspace = WorkspaceRepo(context.client)
     return context
 
 
@@ -112,35 +102,6 @@ def get_org(
     """
     context = _populate_context(AltaDBContext(api_key=api_key, secret=secret, url=url))
     return RBOrganization(context, org_id)
-
-
-def get_workspace(
-    org_id: str, workspace_id: str, api_key: str, secret: str, url: str = DEFAULT_URL
-) -> RBWorkspace:
-    """
-    Get an existing RedBrick workspace object.
-
-    Workspace objects allow you to interact with your RedBrick AI workspaces,
-    and perform actions like importing data, exporting data etc.
-
-    >>> workspace = redbrick.get_workspace(org_id, workspace_id, api_key)
-
-    Parameters
-    ---------------
-    org_id: str
-        Your organizations unique id https://app.redbrickai.com/<org_id>/
-
-    workspace_id: str
-        Your workspaces unique id.
-
-    api_key: str
-        Your secret api_key, can be created from the RedBrick AI platform.
-
-    url: str = DEFAULT_URL
-        Should default to https://api.redbrickai.com
-    """
-    context = _populate_context(AltaDBContext(api_key=api_key, secret=secret, url=url))
-    return RBWorkspace(context, org_id, workspace_id)
 
 
 def get_project(

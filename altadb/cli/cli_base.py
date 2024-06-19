@@ -131,79 +131,6 @@ class CLIConfigInterface(ABC):
         """Handle verify sub command."""
 
 
-class CLIInitInterface(ABC):
-    """CLI init interface."""
-
-    args: Namespace
-    project: CLIDataset
-
-    @abstractmethod
-    def handler(self, args: Namespace) -> None:
-        """Handle init command."""
-
-    @abstractmethod
-    def handle_init(self) -> None:
-        """Handle empty sub command."""
-
-
-class CLICloneInterface(ABC):
-    """CLI clone interface."""
-
-    args: Namespace
-    project: CLIDataset
-
-    @abstractmethod
-    def handler(self, args: Namespace) -> None:
-        """Handle clone command."""
-
-    @abstractmethod
-    def handle_clone(self) -> None:
-        """Handle empty sub command."""
-
-
-class CLIInfoInterface(ABC):
-    """CLI info interface."""
-
-    args: Namespace
-    project: CLIDataset
-
-    SETTING_LABELSTORAGE = "labelstorage"
-
-    @abstractmethod
-    def handler(self, args: Namespace) -> None:
-        """Handle info command."""
-
-    @abstractmethod
-    def handle_get(self) -> None:
-        """Handle get sub command."""
-
-    @abstractmethod
-    def handle_set(self) -> None:
-        """Handle set sub command."""
-
-    @abstractmethod
-    def handle_info(self) -> None:
-        """Handle empty sub command."""
-
-
-class CLIExportInterface(ABC):
-    """CLI export interface."""
-
-    args: Namespace
-    project: CLIDataset
-
-    TYPE_LATEST = "latest"
-    TYPE_GROUNDTRUTH = "groundtruth"
-
-    @abstractmethod
-    def handler(self, args: Namespace) -> None:
-        """Handle export command."""
-
-    @abstractmethod
-    def handle_export(self) -> None:
-        """Handle empty sub command."""
-
-
 class CLIUploadInterface(ABC):
     """CLI upload interface."""
 
@@ -222,43 +149,15 @@ class CLIUploadInterface(ABC):
         """Handle empty sub command."""
 
 
-class CLIReportInterface(ABC):
-    """CLI report interface."""
-
-    args: Namespace
-    project: CLIDataset
-
-    TYPE_ALL = "all"
-    TYPE_GROUNDTRUTH = "groundtruth"
-
-    @abstractmethod
-    def handler(self, args: Namespace) -> None:
-        """Handle report command."""
-
-    @abstractmethod
-    def handle_report(self) -> None:
-        """Handle empty sub command."""
-
-
 class CLIInterface(ABC):
     """Main CLI Interface."""
 
     config: CLIConfigInterface
-    init: CLIInitInterface
-    clone: CLICloneInterface
-    info: CLIInfoInterface
-    export: CLIExportInterface
     upload: CLIUploadInterface
-    report: CLIReportInterface
     list: CLIListInterface
 
     CONFIG = "config"
-    # INIT = "init"
-    # CLONE = "clone"
-    # INFO = "info"
-    # EXPORT = "export"
     UPLOAD = "upload"
-    # REPORT = "report"
     LIST = "list"
 
     @abstractmethod
