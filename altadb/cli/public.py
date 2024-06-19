@@ -44,13 +44,13 @@ class CLIController(CLIInterface):
                 description="List all datasets",
             )
         )
-        self.query = CLIQueryController(
-            command.add_parser(
-                self.QUERY,
-                help="Query a dataset",
-                description="Query a dataset",
-            )
-        )
+        # self.query = CLIQueryController(
+        #     command.add_parser(
+        #         self.QUERY,
+        #         help="Query a dataset",
+        #         description="Query a dataset",
+        #     )
+        # )
         self.create = CLICreateController(
             command.add_parser(
                 self.CREATE,
@@ -67,8 +67,8 @@ class CLIController(CLIInterface):
             self.upload.handler(args)
         elif args.command == self.LIST:
             self.list.handler(args)
-        elif args.command == self.QUERY:
-            self.query.handler(args)
+        # elif args.command == self.QUERY:
+        #     self.query.handler(args)
         elif args.command == self.CREATE:
             self.create.handler(args)
         else:

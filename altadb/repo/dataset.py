@@ -16,9 +16,9 @@ class DatasetRepo(DatasetRepoInterface):
 
     def get_datasets(self, org_id: str) -> List[Dict]:
         """Get all datasets in organization."""
-        query = f"""
-            query sdkDataStores($orgId: UUID!) {{
-                dataStores(orgId: $orgId) {{
+        query = """
+            query sdkDataStores($orgId: UUID!) {
+                dataStores(orgId: $orgId) {
                     orgId
                     name
                     displayName
@@ -27,8 +27,8 @@ class DatasetRepo(DatasetRepoInterface):
                     status
                     updatedAt
                     importStatuses
-                }}
-            }}
+                }
+            }
         """
         response: Dict[str, List[Dict]] = self.client.execute_query(
             query, {"orgId": org_id}
@@ -36,9 +36,9 @@ class DatasetRepo(DatasetRepoInterface):
         return response["dataStores"]
 
     def check_if_exists(self, org_id: str, dataset_name: str) -> bool:
-        query = f"""
-        query DataStore($orgId: UUID!) {{
-            dataStores(orgId: $orgId) {{
+        query = """
+        query DataStore($orgId: UUID!) {
+            dataStores(orgId: $orgId) {
                 orgId
                 name
                 displayName
@@ -47,8 +47,8 @@ class DatasetRepo(DatasetRepoInterface):
                 status
                 updatedAt
                 importStatuses
-            }}
-        }}
+            }
+        }
         """
         variables = {"orgId": org_id}
         response: Dict[str, Dict] = self.client.execute_query(query, variables)
@@ -57,9 +57,9 @@ class DatasetRepo(DatasetRepoInterface):
         )
 
     def create_dataset(self, org_id: str, dataset_name: str) -> Dict:
-        query = f"""
-            mutation sdkCreateDatastore($orgId: UUID!, $dataStore: String!, $displayName: String!) {{
-                createDatastore(orgId: $orgId, dataStore: $dataStore, displayName: $displayName) {{
+        query = """
+            mutation sdkCreateDatastore($orgId: UUID!, $dataStore: String!, $displayName: String!) {
+                createDatastore(orgId: $orgId, dataStore: $dataStore, displayName: $displayName) {
                     orgId
                     name
                     displayName
@@ -68,8 +68,8 @@ class DatasetRepo(DatasetRepoInterface):
                     status
                     updatedAt
                     importStatuses
-                }}
-            }}
+                }
+            }
         """
         variables = {
             "orgId": org_id,
@@ -85,9 +85,9 @@ class DatasetRepo(DatasetRepoInterface):
 
         Raise an exception if project does not exist.
         """
-        query = f"""
-            query sdkDataStore($orgId: UUID!, $name: String!) {{
-                dataStore(orgId: $orgId, name: $name) {{
+        query = """
+            query sdkDataStore($orgId: UUID!, $name: String!) {
+                dataStore(orgId: $orgId, name: $name) {
                     orgId
                     name
                     displayName
@@ -96,8 +96,8 @@ class DatasetRepo(DatasetRepoInterface):
                     status
                     updatedAt
                     importStatuses
-                }}
-            }}
+                }
+            }
         """
         variables = {"orgId": org_id, "projectId": project_id}
         print(variables)
@@ -244,3 +244,41 @@ class DatasetRepo(DatasetRepoInterface):
         }
         result = self.client.execute_query(query_string, query_variables)
         return bool(result["processImport"]["ok"])
+
+    def get_data_store_imports(
+        self,
+        org_id: str,
+        data_store: str,
+        first: int = 20,
+        cursor: Optional[str] = None,
+    ) -> List[Dict[str, str]]:
+        """Get data store imports."""
+        query_string = """
+            query DataStoreImportSeries($orgId: UUID!, $dataStore: String!, $first: Int, $after: String) {
+                dataStoreImportSeries(orgId: $orgId, dataStore: $dataStore, first: $first, after: $after) {
+                    entries {
+                        orgId
+                        datastore
+                        importId
+                        seriesId
+                        createdAt
+                        createdBy
+                        totalSize
+                        numFiles
+                        patientHeaders
+                        studyHeaders
+                        seriesHeaders
+                        url
+                    }
+                    cursor
+                }
+            }
+        """
+        query_variables = {
+            "orgId": org_id,
+            "dataStore": data_store,
+            "first": first,
+            "after": cursor,
+        }
+        result = self.client.execute_query(query_string, query_variables)
+        return result["dataStoreImportSeries"]["entries"]
