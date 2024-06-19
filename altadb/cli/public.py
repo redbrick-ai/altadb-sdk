@@ -4,18 +4,13 @@ import sys
 import argparse
 from typing import List, Optional, Any
 
-from altadb.cli.command.list import CLIListController
 import shtab  # type: ignore
 
 import altadb
 from altadb.cli.command import (
     CLIConfigController,
-    CLIInitController,
-    CLICloneController,
-    CLIInfoController,
-    CLIExportController,
     CLIUploadController,
-    CLIIReportController,
+    CLIListController,
 )
 from altadb.cli.cli_base import CLIInterface
 from altadb.utils.logging import logger
@@ -33,65 +28,11 @@ class CLIController(CLIInterface):
                 description="Setup the credentials for your CLI.",
             )
         )
-        self.init = CLIInitController(
-            command.add_parser(
-                self.INIT,
-                help="Create a new project",
-                description="""
-Create a new project. We recommend creating a new directory and naming it after your project,
-initializing your project within the new directory.
-
-```bash
-$ mkdir new-project
-$ cd new-project
-$ redbrick init
-```
-            """,
-            )
-        )
-        self.clone = CLICloneController(
-            command.add_parser(
-                self.CLONE,
-                help="Clone an existing remote project to local",
-                description="""
-The project will be cloned to a local directory named after your `project name`.
-                """,
-            )
-        )
-        self.info = CLIInfoController(
-            command.add_parser(
-                self.INFO,
-                help="Get a project's information",
-                description="Get a project's information",
-            )
-        )
-        self.export = CLIExportController(
-            command.add_parser(
-                self.EXPORT,
-                help="Export data for a project",
-                description="Export data for a project",
-            )
-        )
         self.upload = CLIUploadController(
             command.add_parser(
                 self.UPLOAD,
                 help="Upload files to a project",
                 description="Upload files to a project",
-            )
-        )
-        self.report = CLIIReportController(
-            command.add_parser(
-                self.REPORT,
-                help="Generate an audit report for a project",
-                description="""
-Generate an audit report for a project. Exports a JSON file containing all actions & events
-associated with every task, including:
-
-- Who annotated the task
-- Who uploaded the data
-- Who reviewed the task
-- and more.
-""",
             )
         )
         self.list = CLIListController(
@@ -106,18 +47,8 @@ associated with every task, including:
         """CLI command main handler."""
         if args.command == self.CONFIG:
             self.config.handler(args)
-        elif args.command == self.INIT:
-            self.init.handler(args)
-        elif args.command == self.CLONE:
-            self.clone.handler(args)
-        elif args.command == self.INFO:
-            self.info.handler(args)
-        elif args.command == self.EXPORT:
-            self.export.handler(args)
         elif args.command == self.UPLOAD:
             self.upload.handler(args)
-        elif args.command == self.REPORT:
-            self.report.handler(args)
         elif args.command == self.LIST:
             self.list.handler(args)
         else:

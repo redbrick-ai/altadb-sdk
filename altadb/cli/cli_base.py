@@ -253,12 +253,12 @@ class CLIInterface(ABC):
     list: CLIListInterface
 
     CONFIG = "config"
-    INIT = "init"
-    CLONE = "clone"
-    INFO = "info"
-    EXPORT = "export"
+    # INIT = "init"
+    # CLONE = "clone"
+    # INFO = "info"
+    # EXPORT = "export"
     UPLOAD = "upload"
-    REPORT = "report"
+    # REPORT = "report"
     LIST = "list"
 
     @abstractmethod
