@@ -65,18 +65,8 @@ class CLIUploadController(CLIUploadInterface):
         # pylint: disable=too-many-nested-blocks
         from altadb.utils.dataset import generate_import_label
 
-        import_name = self.args.name or generate_import_label()
-
         path = os.path.normpath(self.args.path)
-        api_key = self.project.context.client.gql_api_key
-        print(
-            f"""
-            Arguments received:
-                dataset: {self.dataset_name}
-                path: {path}
-                API Key: {api_key}
-              """
-        )
+        import_name = self.args.name or generate_import_label()
 
         files: list[str] = []
         if os.path.isdir(path):
