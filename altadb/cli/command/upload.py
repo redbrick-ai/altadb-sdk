@@ -8,9 +8,7 @@ from typing import cast
 from altadb.cli.dataset import CLIDataset
 from altadb.repo.dataset import DatasetRepo
 from altadb.cli.cli_base import CLIUploadInterface
-from altadb.common.enums import ImportTypes
 from altadb.utils.async_utils import gather_with_concurrency
-from altadb.utils.logging import logger
 from altadb.utils.files import (
     DICOM_FILE_TYPES,
     find_files_recursive,

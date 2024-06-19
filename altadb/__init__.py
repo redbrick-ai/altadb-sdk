@@ -66,14 +66,12 @@ def version() -> str:
 def _populate_context(context: AltaDBContext) -> AltaDBContext:
     # pylint: disable=import-outside-toplevel
     from altadb.repo import (
-        UploadRepo,
         DatasetRepo,
     )
 
     if context.config.debug:
         logger.debug(f"Using: redbrick-sdk=={__version__}")
 
-    context.upload = UploadRepo(context.client)
     context.project = DatasetRepo(context.client)
     return context
 

@@ -1,8 +1,6 @@
 from argparse import ArgumentParser, Namespace
 from altadb.cli.cli_base import CLIListInterface
 from altadb.cli.dataset import CLIDataset
-from altadb.dataset import AltaDBDataset
-from altadb.organization import RBOrganization
 from altadb.repo.dataset import DatasetRepo
 
 from rich.console import Console
