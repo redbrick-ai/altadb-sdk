@@ -1,6 +1,6 @@
 """Abstract interface to upload."""
 
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from abc import ABC, abstractmethod
 
 
@@ -15,7 +15,7 @@ class UploadControllerInterface(ABC):
         import_name: Optional[str] = None,
         import_id: Optional[str] = None,
         files: List[Dict[str, str]] = [],
-    ) -> Optional[Dict]:
+    ) -> Tuple[str, List[str]]:
         """Import files into a dataset."""
 
     @abstractmethod

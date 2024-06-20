@@ -1,7 +1,6 @@
 """Handlers to access APIs for getting projects."""
 
-import json
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 from altadb.common.client import AltaDBClient
 from altadb.common.upload import UploadControllerInterface
@@ -21,7 +20,7 @@ class UploadRepo(UploadControllerInterface):
         import_name: Optional[str] = None,
         import_id: Optional[str] = None,
         files: List[Dict[str, str]] = [],
-    ) -> Optional[Dict]:
+    ) -> Tuple[str, List[str]]:
         if not any([import_id, import_name]):
             raise ValueError("Either import_id or import_name must be provided")
         """Import files into a dataset."""
@@ -43,7 +42,10 @@ class UploadRepo(UploadControllerInterface):
             "importId": import_id,
         }
         result: Dict = self.client.execute_query(query_string, query_variables)
-        return result
+        return (
+            result["importFiles"]["dataStoreImport"]["importId"],
+            result["importFiles"]["urls"],
+        )
 
     def process_import(
         self,
