@@ -1,7 +1,7 @@
 """Public interface to upload module."""
 
 import os
-from typing import Any, List, Optional
+from typing import Any, Callable, List, Optional
 
 import tqdm  # type: ignore
 
@@ -75,9 +75,13 @@ class Upload:
         ).get("importId") or ""
         if import_id:
             progress_bar = tqdm.tqdm(desc="Uploading all files", total=len(files_list))
+
+            def _upload_callback(*_):
+                progress_bar.update(1)
+
             # Upload files to presigned URLs
             coro = gather_with_concurrency(
-                concurrency,
+                min(5, concurrency),
                 [
                     self.upload_files_intermediate_function(
                         dataset=dataset,
@@ -85,7 +89,7 @@ class Upload:
                         import_id=import_id,
                         files_paths=files_list[i : i + MAX_FILE_BATCH_SIZE],
                         file_batch_size=batch_size,
-                        global_progress_bar=progress_bar,
+                        upload_callback=_upload_callback,
                     )
                     for i in range(0, len(files_list), MAX_FILE_BATCH_SIZE)
                 ],
@@ -111,10 +115,10 @@ class Upload:
         self,
         dataset: str,
         import_id: str,
-        global_progress_bar: tqdm.tqdm,
         import_name: Optional[str] = None,
         files_paths: List[dict[str, str]] = [],
         file_batch_size: int = MAX_FILE_BATCH_SIZE,
+        upload_callback: Optional[Callable] = None,
     ) -> bool:
         # Generate presigned URLs for concurrency number of files at a time
         presigned_urls = (
@@ -151,6 +155,6 @@ class Upload:
             progress_bar_name=f"Batch Progress",
             keep_progress_bar=False,
             file_batch_size=file_batch_size,
-            upload_callback=lambda _, __: global_progress_bar.update(1),
+            upload_callback=upload_callback,
         )
         return all(results)

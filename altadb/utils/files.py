@@ -13,7 +13,11 @@ from tenacity.stop import stop_after_attempt
 from tenacity.wait import wait_random_exponential
 from natsort import natsorted, ns
 
-from altadb.common.constants import MAX_FILE_BATCH_SIZE, MAX_RETRY_ATTEMPTS
+from altadb.common.constants import (
+    MAX_FILE_BATCH_SIZE,
+    MAX_FILE_UPLOADS,
+    MAX_RETRY_ATTEMPTS,
+)
 from altadb.utils.async_utils import gather_with_concurrency
 from altadb.utils.logging import log_error, logger
 from altadb.config import config
@@ -198,12 +202,12 @@ async def upload_files(
                         ssl=None if config.verify_ssl else False,
                     ) as response:
                         status = response.status
-                        if upload_callback:
-                            upload_callback(path, status)
         except RetryError as error:
             raise Exception("Unknown problem occurred") from error
 
         if status == 200:
+            if upload_callback:
+                upload_callback()
             return True
         raise ConnectionError(f"Error in uploading {path} to AltaDB")
 
@@ -214,7 +218,7 @@ async def upload_files(
             for path, url, file_type in files
         ]
         uploaded = await gather_with_concurrency(
-            min(MAX_FILE_BATCH_SIZE, file_batch_size),
+            min(MAX_FILE_UPLOADS, file_batch_size),
             coros,
             progress_bar_name,
             keep_progress_bar,
