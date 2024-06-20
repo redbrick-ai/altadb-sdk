@@ -1,7 +1,7 @@
 from argparse import ArgumentParser, Namespace
+from typing import cast
 from altadb.cli.cli_base import CLIQueryInterface
 from altadb.cli.dataset import CLIDataset
-from altadb.repo.dataset import DatasetRepo
 
 from rich.console import Console
 from rich.table import Table
@@ -24,25 +24,24 @@ class CLIQueryController(CLIQueryInterface):
 
     def handler(self, args: Namespace) -> None:
         self.args = args
+        project = CLIDataset(required=False)
+        self.project = cast(CLIDataset, project)
         self.handle_query()
 
     def handle_query(self) -> None:
         dataset = self.args.dataset
         number = self.args.number
-        print(f"Querying dataset: {dataset} with {number} rows")
         cli_dataset = CLIDataset(required=False)
-        ds_repo = DatasetRepo(client=cli_dataset.context.client)
 
-        if not ds_repo.check_if_exists(
+        if not self.project.context.dataset.check_if_exists(
             org_id=cli_dataset.creds.org_id, dataset_name=dataset
         ):
             raise ValueError("Dataset does not exist.")
-        status = ds_repo.get_data_store_imports(
+        status = self.project.context.dataset.get_data_store_imports(
             org_id=cli_dataset.creds.org_id,
             data_store=dataset,
             first=number,
         )
-        # print(status)
         console = Console()
         table = Table(box=ROUNDED)
         # Display the dataset keys in left and values in right
@@ -55,7 +54,6 @@ class CLIQueryController(CLIQueryInterface):
         if status:
             keys = list(status[0].keys())
             keys = list(set(keys) - set(mask_items))
-            print(keys)
             keys = [
                 "seriesId",
                 "importId",
@@ -78,7 +76,6 @@ class CLIQueryController(CLIQueryInterface):
                             row.append(value)
                     elif key not in mask_items:
                         row.append(value)
-                # print(row)
                 table.add_row(str(index + 1), *[str(i) for i in row])
             console.print(table)
             console.print("Dataset queried successfully.")

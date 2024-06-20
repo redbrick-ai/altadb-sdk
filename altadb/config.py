@@ -1,4 +1,4 @@
-"""RedBrick SDK global config."""
+"""AltaDB SDK global config."""
 
 import logging
 from typing import Callable, TypedDict
@@ -7,10 +7,10 @@ from typing_extensions import Required  # type: ignore
 
 
 class Config:
-    """Basic redbrick config."""
+    """Basic altadb config."""
 
     class ConfigOptions(TypedDict):
-        """RedBrick config options."""
+        """AltaDB config options."""
 
         check_version: Callable[[], bool]
         debug: Callable[[], bool]
@@ -18,7 +18,7 @@ class Config:
         log_level: Callable[[], int]
 
     class ConfigState(TypedDict, total=False):
-        """RedBrick config state."""
+        """AltaDB config state."""
 
         logger: Required[logging.Logger]
         check_version: bool
@@ -30,14 +30,14 @@ class Config:
         """Define configs."""
         self._options: Config.ConfigOptions = {
             "check_version": lambda: not bool(
-                os.environ.get("REDBRICK_DISABLE_VERSION_CHECK")
+                os.environ.get("ALTADB_DISABLE_VERSION_CHECK")
             ),
-            "debug": lambda: bool(os.environ.get("REDBRICK_SDK_DEBUG")),
+            "debug": lambda: bool(os.environ.get("ALTADB_SDK_DEBUG")),
             "verify_ssl": lambda: not bool(
                 os.environ.get("RB_DISABLE_SSL_VERIFICATION")
             ),
             "log_level": lambda: int(
-                os.environ.get("REDBRICK_SDK_LOG_LEVEL", logging.INFO)
+                os.environ.get("ALTADB_SDK_LOG_LEVEL", logging.INFO)
             ),
         }
         logger = logging.getLogger("altadb")
@@ -52,20 +52,20 @@ class Config:
 
     @property
     def check_version(self) -> bool:
-        """Check for redbrick version updates."""
+        """Check for altadb version updates."""
         if "check_version" not in self._state:
             self._state["check_version"] = self._options["check_version"]()
         return self._state["check_version"]
 
     @check_version.setter
     def check_version(self, val: bool) -> None:
-        """Check for redbrick version updates."""
+        """Check for altadb version updates."""
         if isinstance(val, bool):
             self._state["check_version"] = val
 
     @check_version.deleter
     def check_version(self) -> None:
-        """Check for redbrick version updates."""
+        """Check for altadb version updates."""
         if "check_version" in self._state:
             del self._state["check_version"]
 

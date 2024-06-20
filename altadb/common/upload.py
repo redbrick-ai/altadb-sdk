@@ -27,14 +27,3 @@ class UploadControllerInterface(ABC):
         total_files: int,
     ) -> bool:
         """Process import."""
-
-    @abstractmethod
-    def get_data_store_imports(
-        self,
-        org_id: str,
-        data_store: str,
-        first: int = 20,
-        cursor: Optional[str] = None,
-    ) -> List[Dict[str, str]]:
-        """Get data store imports."""
-        pass

@@ -201,7 +201,7 @@ async def upload_files(
 
         if status == 200:
             return True
-        raise ConnectionError(f"Error in uploading {path} to RedBrick")
+        raise ConnectionError(f"Error in uploading {path} to AltaDB")
 
     conn = aiohttp.TCPConnector()
     async with aiohttp.ClientSession(connector=conn) as session:

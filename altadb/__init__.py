@@ -58,14 +58,13 @@ def version() -> str:
 
 def _populate_context(context: AltaDBContext) -> AltaDBContext:
     # pylint: disable=import-outside-toplevel
-    from altadb.repo import (
-        DatasetRepo,
-    )
+    from altadb.repo import DatasetRepo, UploadRepo
 
     if context.config.debug:
         logger.debug(f"Using: altadb-sdk=={__version__}")
 
-    context.project = DatasetRepo(context.client)
+    context.dataset = DatasetRepo(context.client)
+    context.upload = UploadRepo(context.client)
     return context
 
 
@@ -99,7 +98,7 @@ def get_dataset(
     org_id: str, dataset: str, api_key: str, secret: str, url: str = DEFAULT_URL
 ) -> AltaDBDataset:
     """
-    Get an existing RedBrick project object.
+    Get an existing AltaDB dataset object.
 
     Project objects allow you to interact with your AltaDB projects,
     and perform actions like importing data, exporting data etc.
@@ -109,10 +108,10 @@ def get_dataset(
     Parameters
     ---------------
     org_id: str
-        Your organizations unique id https://app.redbrickai.com/<org_id>/
+        Your organizations unique id https://app.altadb.com/<org_id>/
 
     dataset: str
-        Your projects unique id https://app.redbrickai.com/<org_id>/<project_id>/
+        Your projects unique id https://app.altadb.com/<org_id>/<project_id>/
 
     api_key: str
         Your visible api_key, can be created from the AltaDB platform.

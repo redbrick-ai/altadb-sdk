@@ -80,7 +80,7 @@ def version_check(current_version: str, check_version: bool) -> None:
             warn = (
                 "You are using version '%s' of the SDK. However, version '%s' is available!\n"
                 + "Please update as soon as possible to get the latest features and bug fixes.\n"
-                + "You can use 'python -m pip install redbrick-sdk==%s' to get the latest version."
+                + "You can use 'python -m pip install altadb==%s' to get the latest version."
             )
             logger.warning(warn, current_version, latest_version, latest_version)
             logger.info("\nCHANGELOG:\n" + "=" * 20 + "\n")
@@ -89,10 +89,10 @@ def version_check(current_version: str, check_version: bool) -> None:
                 version_log: str = updated_version["body"]
 
                 version_log = re.sub(
-                    r" by @[\w-]+ in https://github.com/redbrick-ai/redbrick-sdk/pull/\d+",
+                    r" by @[\w-]+ in https://github.com/redbrick-ai/altadb-sdk/pull/\d+",
                     "",
                     re.sub(
-                        r".*: https://github.com/redbrick-ai/redbrick-sdk/compare/.*",
+                        r".*: https://github.com/redbrick-ai/altadb-sdk/compare/.*",
                         "",
                         version_log,
                     ),

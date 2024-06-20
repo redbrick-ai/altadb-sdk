@@ -1,7 +1,5 @@
 """CLI Base Classes/Interfaces for AltaDB."""
 
-"""Interfaces for RedBrick CLI."""
-
 from abc import ABC, abstractmethod
 from typing import Optional
 from argparse import Namespace
@@ -136,9 +134,6 @@ class CLIUploadInterface(AbstractCLI):
 
     args: Namespace
     project: CLIDataset
-
-    STORAGE_REDBRICK = "redbrick"
-    STORAGE_PUBLIC = "public"
 
     @abstractmethod
     def handler(self, args: Namespace) -> None:

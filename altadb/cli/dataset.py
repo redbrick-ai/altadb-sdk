@@ -44,12 +44,7 @@ class CLIDataset:
         if required:
             assert_validation(
                 self.creds.exists,
-                "No credentials found, please set it up with `redbrick config`",
-            )
-            assert_validation(
-                self.conf.exists,
-                f"No project found in `{self.path}`\n"
-                + "Please create one using `redbrick init` / clone existing using `redbrick clone`",
+                "No credentials found, please set it up with `altadb config`",
             )
             assert_validation(
                 self.org_id == self.creds.org_id,
@@ -127,24 +122,3 @@ class CLIDataset:
             if config.log_info:
                 console.print("[bold green]" + str(self._project))
         return self._project
-
-    def initialize_project(
-        self, org: AltaDBOrganization, project: AltaDBDataset
-    ) -> None:
-        """Initialize local project."""
-        assert_validation(
-            not os.path.isdir(self._rb_dir), f"Already a RedBrick project {self.path}"
-        )
-
-        os.makedirs(self._rb_dir)
-        self.conf.save()
-
-        self.conf.set_section("org", {"id": project.org_id})
-        self.conf.set_section("project", {"id": project.project_id})
-
-        self.conf.save()
-
-        self._org = org
-        self._project = project
-
-        logger.info(f"Successfully initialized {project} in {self.path}\n")

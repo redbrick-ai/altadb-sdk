@@ -19,7 +19,7 @@ class AltaDBContext:
         self.client = AltaDBClient(api_key=api_key, secret=secret, url=url)
 
         self.upload: UploadControllerInterface
-        self.project: DatasetRepoInterface
+        self.dataset: DatasetRepoInterface
 
         self._key_id: Optional[str] = None
 
@@ -33,6 +33,6 @@ class AltaDBContext:
     def key_id(self) -> str:
         """Get key id."""
         if not self._key_id:
-            key_id: str = self.project.get_current_user()["userId"]
+            key_id: str = self.dataset.get_current_user()["userId"]
             self._key_id = key_id
         return self._key_id

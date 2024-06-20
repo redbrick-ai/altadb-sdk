@@ -8,6 +8,18 @@ class DatasetRepoInterface(ABC):
     """Abstract interface to Project APIs."""
 
     @abstractmethod
+    def get_datasets(self, org_id: str) -> List[Dict]:
+        """Get all datasets in organization."""
+
+    @abstractmethod
+    def check_if_exists(self, org_id: str, dataset_name: str) -> bool:
+        """Check if dataset exists."""
+
+    @abstractmethod
+    def create_dataset(self, org_id: str, dataset_name: str) -> Dict:
+        """Create a new dataset."""
+
+    @abstractmethod
     def get_project(self, org_id: str, project_id: str) -> Dict:
         """
         Get project name and status.
@@ -24,7 +36,11 @@ class DatasetRepoInterface(ABC):
         """Get current user."""
 
     @abstractmethod
-    def self_health_check(
-        self, org_id: str, self_url: str, self_data: Dict
-    ) -> Optional[str]:
-        """Send a health check update from the model server."""
+    def get_data_store_imports(
+        self,
+        org_id: str,
+        data_store: str,
+        first: int = 20,
+        cursor: Optional[str] = None,
+    ) -> List[Dict[str, str]]:
+        """Get data store imports."""

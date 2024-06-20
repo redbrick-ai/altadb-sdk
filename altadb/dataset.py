@@ -1,6 +1,7 @@
 """Interface for interacting with your AltaDB Projects."""
 
 from altadb.common.context import AltaDBContext
+from altadb.upload.public import Upload
 
 
 class AltaDBDataset:
@@ -20,6 +21,7 @@ class AltaDBDataset:
         self.context = context
         self._org_id = org_id
         self._dataset = dataset
+        self.upload = Upload(self.context, self._org_id, self._dataset)
 
     @property
     def org_id(self) -> str:
@@ -29,15 +31,6 @@ class AltaDBDataset:
         Retrieves the unique Organization UUID that this project belongs to
         """
         return self._org_id
-
-    @property
-    def project_id(self) -> str:
-        """
-        Read only property.
-
-        Retrieves the unique Project ID UUID.
-        """
-        return self._dataset
 
     def __str__(self) -> str:
         return f"AltaDB Dataset: {self.org_id}/{self._dataset}"

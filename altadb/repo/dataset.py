@@ -36,6 +36,7 @@ class DatasetRepo(DatasetRepoInterface):
         return response["dataStores"]
 
     def check_if_exists(self, org_id: str, dataset_name: str) -> bool:
+        """Check if dataset exists."""
         query = """
         query sdkDataStore($orgId: UUID!) {
             dataStores(orgId: $orgId) {
@@ -57,6 +58,7 @@ class DatasetRepo(DatasetRepoInterface):
         )
 
     def create_dataset(self, org_id: str, dataset_name: str) -> Dict:
+        """Create a new dataset."""
         query = """
             mutation sdkCreateDatastore($orgId: UUID!, $dataStore: String!, $displayName: String!) {
                 createDatastore(orgId: $orgId, dataStore: $dataStore, displayName: $displayName) {
@@ -100,7 +102,6 @@ class DatasetRepo(DatasetRepoInterface):
             }
         """
         variables = {"orgId": org_id, "projectId": project_id}
-        print(variables)
         response: Dict[str, Dict] = self.client.execute_query(query, variables)
         if response.get("project"):
             return response["project"]
@@ -123,7 +124,6 @@ class DatasetRepo(DatasetRepoInterface):
             }
         """
         response: Dict[str, Dict] = self.client.execute_query(query, {"orgId": org_id})
-        print(response)
         return response["organization"]
 
     def get_current_user(self) -> Dict:
@@ -139,25 +139,40 @@ class DatasetRepo(DatasetRepoInterface):
         current_user: Dict = result["me"]
         return current_user
 
-    def self_health_check(
-        self, org_id: str, self_url: str, self_data: Dict
-    ) -> Optional[str]:
-        """Send a health check update from the model server."""
+    def get_data_store_imports(
+        self,
+        org_id: str,
+        data_store: str,
+        first: int = 20,
+        cursor: Optional[str] = None,
+    ) -> List[Dict[str, str]]:
+        """Get data store imports."""
         query_string = """
-            mutation modelHealthSDK($orgId: UUID!, $modelUrl: String!, $modelData: JSONString!) {
-                modelHealth(orgId: $orgId, modelUrl: $modelUrl, modelData: $modelData) {
-                    ok
-                    message
+            query DataStoreImportSeries($orgId: UUID!, $dataStore: String!, $first: Int, $after: String) {
+                dataStoreImportSeries(orgId: $orgId, dataStore: $dataStore, first: $first, after: $after) {
+                    entries {
+                        orgId
+                        datastore
+                        importId
+                        seriesId
+                        createdAt
+                        createdBy
+                        totalSize
+                        numFiles
+                        patientHeaders
+                        studyHeaders
+                        seriesHeaders
+                        url
+                    }
+                    cursor
                 }
             }
         """
         query_variables = {
             "orgId": org_id,
-            "modelUrl": self_url,
-            "modelData": json.dumps(self_data),
+            "dataStore": data_store,
+            "first": first,
+            "after": cursor,
         }
         result = self.client.execute_query(query_string, query_variables)
-        if not result["modelHealth"]["ok"]:
-            return result["modelHealth"]["message"]
-
-        return None
+        return result["dataStoreImportSeries"]["entries"]

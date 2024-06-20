@@ -23,7 +23,7 @@ from altadb import __version__ as sdk_version  # noqa: E402
 
 project = "AltaDB"
 copyright = "2023, AltaDB"  # pylint: disable=redefined-builtin
-author = "RedBrick AI"
+author = "AltaDB SDK"
 
 version = sdk_version
 release = version
@@ -79,7 +79,7 @@ html_favicon = "_static/favicon.ico"
 html_theme_options = {
     "light_logo": "redbrick.svg",
     "dark_logo": "redbrick--darkmode.svg",
-    "source_repository": "https://github.com/redbrick-ai/redbrick-sdk/",
+    "source_repository": "https://github.com/redbrick-ai/altadb-sdk/",
     "source_branch": "master",
     "source_directory": "docs/",
     "navigation_with_keys": True,

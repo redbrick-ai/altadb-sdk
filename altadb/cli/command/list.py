@@ -2,7 +2,6 @@ from argparse import ArgumentParser, Namespace
 from typing import Dict, List
 from altadb.cli.cli_base import CLIListInterface
 from altadb.cli.dataset import CLIDataset
-from altadb.repo.dataset import DatasetRepo
 
 from rich.console import Console
 from rich.table import Table
@@ -24,14 +23,10 @@ class CLIListController(CLIListInterface):
 
     def handler(self, args: Namespace) -> None:
         self.args = args
-        # dataset = args.dataset
         dataset = CLIDataset(required=False)
         context = dataset.context
         org_id = dataset.creds.org_id
-        datasets: List[Dict] = DatasetRepo(client=dataset.context.client).get_datasets(
-            org_id=org_id
-        )
-        # print(datasets)
+        datasets: List[Dict] = context.dataset.get_datasets(org_id=org_id)
         console = Console()
         table = Table(
             title="Datasets",
@@ -53,11 +48,12 @@ class CLIListController(CLIListInterface):
         keys: List[str] = list(set(datasets_details[0].keys()) - set(mask_out))
         for key in keys:
             table.add_column(str(key))
-        for index, dataset in enumerate(datasets_details):
-            if isinstance(dataset, dict):
+
+        for index, dset in enumerate(datasets_details):
+            if isinstance(dset, dict):
                 table.add_row(
                     f"[bold]{index + 1}[/bold]",
-                    *[str((dataset).get(key) or "") for key in keys],
+                    *[str((dset).get(key) or "") for key in keys],
                     style="dim",
                 )
         console.print(table)

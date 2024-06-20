@@ -45,7 +45,6 @@ class CLICreateController(CLICreateInterface):
         for key, value in status.items():
             if key in cipher_items:
                 if value.startswith("API:"):
-                    # print(value)
                     _val = str(value)[:10] + "*" * (len(str(value)) - 6)
                     table.add_row(key, _val)
             elif key not in mask_items:

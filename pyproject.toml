@@ -1,11 +1,11 @@
 
 [project]
-name = "altadb-sdk"
-description = "RedBrick platform Python SDK!"
+name = "altadb"
+description = "AltaDB platform Python SDK!"
 readme = "README.md"
 dynamic = ["version"]
 requires-python = ">=3.8,<3.13"
-keywords = ["redbrick"]
+keywords = ["altadb"]
 dependencies = [
     "aiohttp<4,>=3.7.4",
     "dicom2nifti<3",
@@ -33,9 +33,9 @@ classifiers = [
 altadb = "altadb.cli:cli_main"
 
 [project.urls]
-Homepage = "https://www.redbrickai.com"
-Documentation = "https://sdk.redbrickai.com"
-Changelog = "https://github.com/redbrick-ai/redbrick-sdk/releases"
+Homepage = "https://www.altadb.com"
+Documentation = "https://sdk.altadb.com"
+Changelog = "https://github.com/redbrick-ai/altadb-sdk/releases"
 
 [project.optional-dependencies]
 dev = [

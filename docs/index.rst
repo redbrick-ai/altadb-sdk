@@ -14,7 +14,7 @@ The SDK and CLI are available on PyPI and can be installed using `pip`.
 
 .. code:: bash
 
-   $ pip install altadb-sdk
+   $ pip install altadb
 
 **Authentication**
 
@@ -28,25 +28,6 @@ To use the SDK and CLI, you need a API key. You can fetch the API key from the A
 For most methods in the CLI and SDK you will need an Organization ID. It can be found from the URL.
 
 .. image:: _static/id2.png
-
-
-Python SDK
-================================
-The SDK is best for writing Python scripts to interact with your AltaDB organization & Datasets. The SDK offers granular
-functions for programmatically manipulating data and more.
-
-.. card::
-   :link: sdk
-   :link-type: ref
-
-   :material-regular:`link;1.5rem;sd-mr-2` See the :ref:`sdk` documentation for more information.
-
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-
-   sdk
 
 Command Line Interface
 =======================================
@@ -63,22 +44,3 @@ The AltaDB CLI offers a simple interface tointeract with your datasets, and perf
    :maxdepth: 2
 
    cli
-
-
-
-Formats
-===================
-Formats for importing & exporting data, and interfacing with various entities on RedBrick AI.
-
-.. card::
-   :link: formats
-   :link-type: ref
-
-   :material-regular:`link;1.5rem;sd-mr-2` See the :ref:`formats` documentation for more information.
-
-
-.. toctree::
-   :hidden:
-   :maxdepth: 2
-
-   formats/index

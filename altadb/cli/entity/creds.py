@@ -14,7 +14,7 @@ class CLICredentials:
     _creds_file: str
     _creds: ConfigParser
 
-    ENV_VAR: str = "REDBRICK_PROFILE"
+    ENV_VAR: str = "ALTADB_PROFILE"
     DEFAULT_PROFILE: str = "default"
 
     def __init__(self, creds_file: str) -> None:
