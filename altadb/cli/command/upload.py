@@ -7,7 +7,7 @@ from typing import cast
 
 from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIUploadInterface
-from altadb.common.constants import MAX_FILE_BATCH_SIZE
+from altadb.common.constants import MAX_UPLOAD_CONCURRENCY
 from altadb.dataset import AltaDBDataset
 
 
@@ -36,15 +36,8 @@ class CLIUploadController(CLIUploadInterface):
             "-c",
             "--concurrency",
             type=int,
-            default=50,
-            help="Concurrency value (Default: 50)",
-        )
-        parser.add_argument(
-            "-b" "--batch-size",
-            dest="batch_size",
-            type=int,
-            default=MAX_FILE_BATCH_SIZE,
-            help=f"Batch size (Default: {MAX_FILE_BATCH_SIZE})",
+            default=MAX_UPLOAD_CONCURRENCY,
+            help=f"Concurrency value (Default: {MAX_UPLOAD_CONCURRENCY})",
         )
 
     def handler(self, args: Namespace) -> None:
@@ -63,6 +56,5 @@ class CLIUploadController(CLIUploadInterface):
                 path,
                 self.args.name or None,
                 self.args.concurrency,
-                batch_size=self.args.batch_size,
             )
         )

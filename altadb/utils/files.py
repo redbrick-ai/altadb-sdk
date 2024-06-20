@@ -166,7 +166,6 @@ async def upload_files(
     files: List[Tuple[str, str, str]],
     progress_bar_name: Optional[str] = "Uploading files",
     keep_progress_bar: bool = True,
-    file_batch_size: int = MAX_FILE_BATCH_SIZE,
     upload_callback: Optional[Callable] = None,
 ) -> List[bool]:
     """Upload files from local path to url (file path, presigned url, file type)."""
@@ -218,7 +217,7 @@ async def upload_files(
             for path, url, file_type in files
         ]
         uploaded = await gather_with_concurrency(
-            min(MAX_FILE_UPLOADS, file_batch_size),
+            MAX_FILE_UPLOADS,
             coros,
             progress_bar_name,
             keep_progress_bar,

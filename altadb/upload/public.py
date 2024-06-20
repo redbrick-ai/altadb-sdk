@@ -5,7 +5,7 @@ from typing import Any, Callable, List, Optional
 
 import tqdm  # type: ignore
 
-from altadb.common.constants import MAX_FILE_BATCH_SIZE
+from altadb.common.constants import MAX_FILE_BATCH_SIZE, MAX_UPLOAD_CONCURRENCY
 from altadb.common.context import AltaDBContext
 
 from altadb.utils.async_utils import gather_with_concurrency
@@ -32,8 +32,7 @@ class Upload:
         dataset: str,
         path: str,
         import_name: Optional[str] = None,
-        concurrency: int = 10,
-        batch_size: int = MAX_FILE_BATCH_SIZE,
+        concurrency: int = MAX_UPLOAD_CONCURRENCY,
     ) -> None:
         """Upload files."""
 
@@ -88,7 +87,6 @@ class Upload:
                         import_name=import_name,
                         import_id=import_id,
                         files_paths=files_list[i : i + MAX_FILE_BATCH_SIZE],
-                        file_batch_size=batch_size,
                         upload_callback=_upload_callback,
                     )
                     for i in range(0, len(files_list), MAX_FILE_BATCH_SIZE)
@@ -117,7 +115,6 @@ class Upload:
         import_id: str,
         import_name: Optional[str] = None,
         files_paths: List[dict[str, str]] = [],
-        file_batch_size: int = MAX_FILE_BATCH_SIZE,
         upload_callback: Optional[Callable] = None,
     ) -> bool:
         # Generate presigned URLs for concurrency number of files at a time
@@ -154,7 +151,6 @@ class Upload:
             ],
             progress_bar_name=f"Batch Progress",
             keep_progress_bar=False,
-            file_batch_size=file_batch_size,
             upload_callback=upload_callback,
         )
         return all(results)
