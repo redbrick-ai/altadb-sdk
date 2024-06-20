@@ -162,6 +162,7 @@ async def upload_files(
     files: List[Tuple[str, str, str]],
     progress_bar_name: Optional[str] = "Uploading files",
     keep_progress_bar: bool = True,
+    file_batch_size: int = MAX_FILE_BATCH_SIZE,
 ) -> List[bool]:
     """Upload files from local path to url (file path, presigned url, file type)."""
 
@@ -210,7 +211,7 @@ async def upload_files(
             for path, url, file_type in files
         ]
         uploaded = await gather_with_concurrency(
-            MAX_FILE_BATCH_SIZE, coros, progress_bar_name, keep_progress_bar
+            file_batch_size, coros, progress_bar_name, keep_progress_bar
         )
 
     await asyncio.sleep(0.250)  # give time to close ssl connections

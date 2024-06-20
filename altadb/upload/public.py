@@ -1,8 +1,9 @@
 """Public interface to upload module."""
 
 import os
-from typing import Optional
+from typing import List, Optional
 
+from altadb.common.constants import MAX_FILE_BATCH_SIZE
 from altadb.common.context import AltaDBContext
 
 from altadb.utils.async_utils import gather_with_concurrency
@@ -29,7 +30,8 @@ class Upload:
         dataset: str,
         path: str,
         import_name: Optional[str] = None,
-        concurrency: int = 50,
+        concurrency: int = 10,
+        batch_size: int = MAX_FILE_BATCH_SIZE,
     ) -> None:
         """Upload files."""
 
@@ -71,31 +73,44 @@ class Upload:
         ).get("importId") or ""
         if import_id:
             # Generate presigned URLs
-            presigned_urls = (
-                (
-                    self.context.upload.import_files(
-                        org_id=self.org_id,
-                        data_store=dataset,
-                        import_name=import_name,
-                        import_id=import_id,
-                        files=[
-                            {
-                                "filePath": file["filePath"],
-                                "fileType": file["fileType"],
-                            }
-                            for file in files_list
-                        ],
-                    )
-                    or {}
-                ).get("importFiles")
-                or {}
-            ).get("urls") or []
-            if presigned_urls:
+            # presigned_urls = (
+            #     (
+            #         self.context.upload.import_files(
+            #             org_id=self.org_id,
+            #             data_store=dataset,
+            #             import_name=import_name,
+            #             import_id=import_id,
+            #             files=[
+            #                 {
+            #                     "filePath": file["filePath"],
+            #                     "fileType": file["fileType"],
+            #                 }
+            #                 for file in files_list
+            #             ],
+            #         )
+            #         or {}
+            #     ).get("importFiles")
+            #     or {}
+            # ).get("urls") or []
+            # if presigned_urls:
+            if True:
+
                 # Upload files to presigned URLs
-                upload_status = await upload_files_intermediate_function(
-                    files_paths=files_list,
-                    presigned_urls=presigned_urls,
-                    concurrency=concurrency,
+                _ = concurrency * batch_size
+                upload_status = await gather_with_concurrency(
+                    concurrency,
+                    [
+                        self.upload_files_intermediate_function(
+                            dataset=dataset,
+                            import_name=import_name,
+                            import_id=import_id,
+                            files_paths=files_list[i : i + _],
+                            file_batch_size=batch_size,
+                        )
+                        for i in range(0, len(files_list), _)
+                    ],
+                    progress_bar_name="uploading all files",
+                    keep_progress_bar=True,
                 )
 
                 if not upload_status:
@@ -115,14 +130,38 @@ class Upload:
         else:
             log_error("Error uploading files", True)
 
-
-async def upload_files_intermediate_function(
-    files_paths: list[dict[str, str]],
-    presigned_urls: list[str],
-    concurrency: int,
-) -> bool:
-    coros = [
-        upload_files(
+    async def upload_files_intermediate_function(
+        self,
+        dataset: str,
+        import_id: str,
+        import_name: Optional[str] = None,
+        files_paths: List[dict[str, str]] = [],
+        file_batch_size: int = MAX_FILE_BATCH_SIZE,
+    ) -> bool:
+        # Generate presigned URLs for concurrency number of files at a time
+        presigned_urls = (
+            (
+                self.context.upload.import_files(
+                    org_id=self.org_id,
+                    data_store=dataset,
+                    import_name=import_name,
+                    import_id=import_id,
+                    files=[
+                        {
+                            "filePath": file["filePath"],
+                            "fileType": file["fileType"],
+                        }
+                        for file in files_paths
+                    ],
+                )
+                or {}
+            ).get("importFiles")
+            or {}
+        ).get("urls") or []
+        if not presigned_urls:
+            return False
+        # Upload files to presigned URLs
+        results = await upload_files(
             [
                 (
                     file_path["abs_file_path"],
@@ -131,13 +170,8 @@ async def upload_files_intermediate_function(
                 )
                 for file_path, presigned_url in zip(files_paths, presigned_urls)
             ],
+            progress_bar_name=f"Batch Progress",
+            keep_progress_bar=False,
+            file_batch_size=file_batch_size,
         )
-    ]
-    results = await gather_with_concurrency(
-        max_concurrency=concurrency,
-        tasks=coros,
-        progress_bar_name="Uploading files",
-        keep_progress_bar=True,
-        return_exceptions=False,
-    )
-    return all(results)
+        return all(results)

@@ -33,7 +33,7 @@ class AltaDBDataset:
         return self._org_id
 
     def __str__(self) -> str:
-        return f"AltaDB Dataset: {self.org_id}/{self._dataset}"
+        return f"AltaDB Dataset: {self._dataset}"
 
     def __repr__(self) -> str:
         """Representation of object."""

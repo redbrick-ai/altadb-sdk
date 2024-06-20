@@ -98,7 +98,7 @@ class CLIConfigController(CLIConfigInterface):
     def handler(self, args: Namespace) -> None:
         """Handle config command."""
         self.args = args
-        self.project = CLIDataset(required=False)
+        self.project = CLIDataset()
 
         if not args.sub_command:
             self.handle_config()

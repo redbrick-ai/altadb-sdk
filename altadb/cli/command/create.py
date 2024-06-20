@@ -1,6 +1,7 @@
 from argparse import ArgumentParser, Namespace
 from altadb.cli.cli_base import CLICreateInterface
 from altadb.cli.dataset import CLIDataset
+from altadb.config import config
 from altadb.repo.dataset import DatasetRepo
 
 from rich.console import Console
@@ -20,7 +21,7 @@ class CLICreateController(CLICreateInterface):
         self.handle_create()
 
     def handle_create(self) -> None:
-        cli_dataset = CLIDataset(required=False)
+        cli_dataset = CLIDataset()
         ds_repo = DatasetRepo(client=cli_dataset.context.client)
         if ds_repo.check_if_exists(
             org_id=cli_dataset.creds.org_id, dataset_name=self.args.dataset
@@ -49,6 +50,7 @@ class CLICreateController(CLICreateInterface):
                     table.add_row(key, _val)
             elif key not in mask_items:
                 table.add_row(key, value)
-        console.print(table)
-        console.print("Dataset created successfully.")
+        if config.log_info:
+            console.print(table)
+            console.print("Dataset created successfully.")
         return None

@@ -7,6 +7,8 @@ from rich.console import Console
 from rich.table import Table
 from rich.box import ROUNDED
 
+from altadb.config import config
+
 
 class CLIQueryController(CLIQueryInterface):
     """CLI list command controller."""
@@ -24,14 +26,14 @@ class CLIQueryController(CLIQueryInterface):
 
     def handler(self, args: Namespace) -> None:
         self.args = args
-        project = CLIDataset(required=False)
+        project = CLIDataset("")
         self.project = cast(CLIDataset, project)
         self.handle_query()
 
     def handle_query(self) -> None:
         dataset = self.args.dataset
         number = self.args.number
-        cli_dataset = CLIDataset(required=False)
+        cli_dataset = CLIDataset("")
 
         if not self.project.context.dataset.check_if_exists(
             org_id=cli_dataset.creds.org_id, dataset_name=dataset
@@ -77,6 +79,7 @@ class CLIQueryController(CLIQueryInterface):
                     elif key not in mask_items:
                         row.append(value)
                 table.add_row(str(index + 1), *[str(i) for i in row])
-            console.print(table)
-            console.print("Dataset queried successfully.")
+            if config.log_info:
+                console.print(table)
+                console.print("Dataset queried successfully.")
         return None

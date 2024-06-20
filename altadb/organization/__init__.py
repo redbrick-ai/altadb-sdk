@@ -1,5 +1,6 @@
 """Organization class."""
 
+from typing import Dict, List
 from altadb.common.context import AltaDBContext
 
 
@@ -46,3 +47,27 @@ class AltaDBOrganization:
     def __repr__(self) -> str:
         """Representation of object."""
         return str(self)
+
+    def get_datasets(
+        self,
+        org_id: str,
+    ) -> list:
+        """Retrieve all datasets in organization."""
+        query = """
+            query sdkDataStores($orgId: UUID!) {
+                dataStores(orgId: $orgId) {
+                    orgId
+                    name
+                    displayName
+                    createdAt
+                    createdBy
+                    status
+                    updatedAt
+                    importStatuses
+                }
+            }
+        """
+        response: Dict[str, List[Dict]] = self.context.client.execute_query(
+            query, {"orgId": org_id}
+        )
+        return response["dataStores"]

@@ -1,11 +1,16 @@
 from argparse import ArgumentParser, Namespace
 from typing import Dict, List
+from altadb import _populate_context
 from altadb.cli.cli_base import CLIListInterface
 from altadb.cli.dataset import CLIDataset
 
 from rich.console import Console
 from rich.table import Table
 from rich.box import ROUNDED
+
+from altadb.common.context import AltaDBContext
+from altadb.config import config
+from altadb.dataset import AltaDBDataset
 
 
 class CLIListController(CLIListInterface):
@@ -23,9 +28,9 @@ class CLIListController(CLIListInterface):
 
     def handler(self, args: Namespace) -> None:
         self.args = args
-        dataset = CLIDataset(required=False)
-        context = dataset.context
-        org_id = dataset.creds.org_id
+        toplevel = CLIDataset()
+        context = toplevel.context
+        org_id = toplevel.creds.org_id
         datasets: List[Dict] = context.dataset.get_datasets(org_id=org_id)
         console = Console()
         table = Table(
@@ -56,7 +61,8 @@ class CLIListController(CLIListInterface):
                     *[str((dset).get(key) or "") for key in keys],
                     style="dim",
                 )
-        console.print(table)
+        if config.log_info:
+            console.print(table)
 
     def handle_list(self) -> None:
         """Handle list command."""

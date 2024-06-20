@@ -26,49 +26,14 @@ class CLIDataset:
 
     _context: Optional[AltaDBContext] = None
     _org: Optional[AltaDBOrganization] = None
-    _project: Optional[AltaDBDataset] = None
+    altadb_dataset: Optional[AltaDBDataset] = None
 
-    def __init__(self, path: str = ".", required: bool = True) -> None:
+    def __init__(self, dataset: str = "") -> None:
         """Initialize CLIProject."""
-        self.path = os.path.realpath(path)
-        assert_validation(
-            os.path.isdir(self.path), f"Not a valid directory {self.path}"
-        )
-
-        self._rb_dir = os.path.join(self.path, ".altadb")
         self._creds_file = os.path.join(config_path(), "credentials")
         self.creds = CLICredentials(self._creds_file)
-        self.conf = CLIConfiguration(os.path.join(self._rb_dir, "config"))
-        self.cache = CLICache(os.path.join(self._rb_dir, "cache"), self.conf)
-
-        if required:
-            assert_validation(
-                self.creds.exists,
-                "No credentials found, please set it up with `altadb config`",
-            )
-            assert_validation(
-                self.org_id == self.creds.org_id,
-                "Project configuration does not match with current profile",
-            )
-
-    @classmethod
-    def from_path(
-        cls, path: str = ".", required: bool = True
-    ) -> Optional["CLIDataset"]:
-        """Get CLIProject from given directory."""
-        path = os.path.realpath(path)
-
-        if os.path.isdir(os.path.join(path, ".altadb")):
-            return cls(path, required)
-
-        parent = os.path.realpath(os.path.join(path, ".."))
-
-        if parent == path:
-            if required:
-                raise Exception(f"No redbrick project found. Searched upto {path}")
-            return None
-
-        return cls.from_path(parent, required)
+        self._dataset_name = dataset
+        self._dataset: Optional[AltaDBDataset] = None
 
     @property
     def context(self) -> AltaDBContext:
@@ -80,16 +45,7 @@ class CLIDataset:
     @property
     def org_id(self) -> str:
         """Get org_id of current project."""
-        value = self.conf.get_option("org", "id")
-        assert_validation(value, "Invalid project configuration")
-        return cast(str, value).strip().lower()
-
-    @property
-    def project_id(self) -> str:
-        """Get project_id of current project."""
-        value = self.conf.get_option("project", "id")
-        assert_validation(value, "Invalid project configuration")
-        return cast(str, value).strip().lower()
+        return self.creds.org_id
 
     @property
     def org(self) -> AltaDBOrganization:
@@ -107,18 +63,19 @@ class CLIDataset:
         return self._org
 
     @property
-    def project(self) -> AltaDBDataset:
+    def dataset(self) -> AltaDBDataset:
         """Get project object."""
-        if not self._project:
+        if not self._dataset:
             console = Console()
             with console.status("Fetching project") as status:
                 try:
-                    self._project = AltaDBDataset(
-                        self.context, self.org_id, self.project_id
+                    self._dataset = AltaDBDataset(
+                        self.context, self.org_id, self._dataset_name
                     )
                 except Exception as error:
                     status.stop()
                     raise error
             if config.log_info:
-                console.print("[bold green]" + str(self._project))
-        return self._project
+                console.print("[bold green]" + str(self._dataset))
+
+        return self._dataset

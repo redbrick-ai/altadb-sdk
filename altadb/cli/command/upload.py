@@ -7,6 +7,8 @@ from typing import cast
 
 from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIUploadInterface
+from altadb.common.constants import MAX_FILE_BATCH_SIZE
+from altadb.dataset import AltaDBDataset
 
 
 class CLIUploadController(CLIUploadInterface):
@@ -37,14 +39,18 @@ class CLIUploadController(CLIUploadInterface):
             default=50,
             help="Concurrency value (Default: 50)",
         )
+        parser.add_argument(
+            "-b" "--batch-size",
+            dest="batch_size",
+            type=int,
+            default=MAX_FILE_BATCH_SIZE,
+            help=f"Batch size (Default: {MAX_FILE_BATCH_SIZE})",
+        )
 
     def handler(self, args: Namespace) -> None:
         """Handle upload command."""
         self.args = args
-        project = CLIDataset(required=False)
-        self.project = cast(CLIDataset, project)
-        self.org_id = project.creds.org_id
-        self.dataset_name = args.dataset
+        self.project = CLIDataset(self.args.dataset)
         self.handle_upload()
 
     def handle_upload(self) -> None:
@@ -52,7 +58,11 @@ class CLIUploadController(CLIUploadInterface):
         path = os.path.realpath(self.args.path)
 
         asyncio.run(
-            self.project.project.upload.upload_files(
-                self.dataset_name, path, self.args.name or None, self.args.concurrency
+            self.project.dataset.upload.upload_files(
+                self.args.dataset,
+                path,
+                self.args.name or None,
+                self.args.concurrency,
+                batch_size=self.args.batch_size,
             )
         )
