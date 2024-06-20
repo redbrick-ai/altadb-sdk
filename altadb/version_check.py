@@ -17,7 +17,7 @@ def get_updated_versions(current_version: str) -> List[Dict]:
     import requests  # type: ignore
     from packaging.version import Version
 
-    url = "https://api.github.com/repos/redbrick-ai/redbrick-sdk/releases"
+    url = "https://api.github.com/repos/redbrick-ai/altadb-sdk/releases"
     try:
         releases = requests.get(url, timeout=30).json()
         releases = [

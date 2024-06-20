@@ -11,7 +11,7 @@ class DatasetRepo(DatasetRepoInterface):
     """Class to manage interaction with project APIs."""
 
     def __init__(self, client: AltaDBClient) -> None:
-        """Construct ProjectRepo."""
+        """Construct Dataset."""
         self.client = client
 
     def get_datasets(self, org_id: str) -> List[Dict]:
@@ -37,7 +37,7 @@ class DatasetRepo(DatasetRepoInterface):
 
     def check_if_exists(self, org_id: str, dataset_name: str) -> bool:
         query = """
-        query DataStore($orgId: UUID!) {
+        query sdkDataStore($orgId: UUID!) {
             dataStores(orgId: $orgId) {
                 orgId
                 name
@@ -110,7 +110,7 @@ class DatasetRepo(DatasetRepoInterface):
     def get_org(self, org_id: str) -> Dict:
         """Get organization."""
         query = """
-            query Organization($orgId: UUID!) {
+            query sdkOrganization($orgId: UUID!) {
                 organization(orgId: $orgId) {
                     orgId
                     name
@@ -139,33 +139,6 @@ class DatasetRepo(DatasetRepoInterface):
         current_user: Dict = result["me"]
         return current_user
 
-    def get_members(self, org_id: str, project_id: str) -> List[Dict]:
-        """Get members of a project."""
-        query_string = """
-        query getProjectMembersSDK($orgId: UUID!, $projectId: UUID!) {
-            projectMembers(orgId: $orgId, projectId: $projectId) {
-                member {
-                    user {
-                        userId
-                        email
-                        givenName
-                        familyName
-                    }
-                    role
-                    tags
-                }
-                stageAccess {
-                    stageName
-                    access
-                }
-            }
-        }
-        """
-        query_variables = {"orgId": org_id, "projectId": project_id}
-        result = self.client.execute_query(query_string, query_variables)
-        members: List[Dict] = result["projectMembers"]
-        return members
-
     def self_health_check(
         self, org_id: str, self_url: str, self_data: Dict
     ) -> Optional[str]:
@@ -188,97 +161,3 @@ class DatasetRepo(DatasetRepoInterface):
             return result["modelHealth"]["message"]
 
         return None
-
-    def import_files(
-        self,
-        org_id: str,
-        data_store: str,
-        import_name: Optional[str] = None,
-        import_id: Optional[str] = None,
-        files: List[Dict[str, str]] = [],
-    ) -> Optional[Dict]:
-        if not any([import_id, import_name]):
-            raise ValueError("Either import_id or import_name must be provided")
-        """Import files into a dataset."""
-        query_string = """
-            mutation importFiles($orgId: UUID!, $dataStore: String!, $files: [ImportJobFileInput!]!, $importName: String, $importId: UUID) {
-                importFiles(orgId: $orgId, dataStore: $dataStore, files: $files, importName: $importName, importId: $importId) {
-                    dataStoreImport {
-                       importId
-                    }
-                    urls
-                }
-            }
-        """
-        query_variables = {
-            "orgId": org_id,
-            "dataStore": data_store,
-            "files": files,
-            "importName": import_name,
-            "importId": import_id,
-        }
-        result: Dict = self.client.execute_query(query_string, query_variables)
-        return result
-
-    def process_import(
-        self,
-        org_id: str,
-        data_store: str,
-        import_id: str,
-        total_files: int,
-    ) -> bool:
-        """Process import."""
-        query_string = """
-            mutation processImport($orgId: UUID!, $dataStore: String!, $importId: UUID!, $totalFiles: Int) {
-                processImport(orgId: $orgId, dataStore: $dataStore, importId: $importId, totalFiles: $totalFiles) {
-                    ok
-                    message
-                }
-            }
-            """
-        query_variables = {
-            "orgId": org_id,
-            "dataStore": data_store,
-            "importId": import_id,
-            "totalFiles": total_files,
-        }
-        result = self.client.execute_query(query_string, query_variables)
-        return bool(result["processImport"]["ok"])
-
-    def get_data_store_imports(
-        self,
-        org_id: str,
-        data_store: str,
-        first: int = 20,
-        cursor: Optional[str] = None,
-    ) -> List[Dict[str, str]]:
-        """Get data store imports."""
-        query_string = """
-            query DataStoreImportSeries($orgId: UUID!, $dataStore: String!, $first: Int, $after: String) {
-                dataStoreImportSeries(orgId: $orgId, dataStore: $dataStore, first: $first, after: $after) {
-                    entries {
-                        orgId
-                        datastore
-                        importId
-                        seriesId
-                        createdAt
-                        createdBy
-                        totalSize
-                        numFiles
-                        patientHeaders
-                        studyHeaders
-                        seriesHeaders
-                        url
-                    }
-                    cursor
-                }
-            }
-        """
-        query_variables = {
-            "orgId": org_id,
-            "dataStore": data_store,
-            "first": first,
-            "after": cursor,
-        }
-        result = self.client.execute_query(query_string, query_variables)
-        return result["dataStoreImportSeries"]["entries"]

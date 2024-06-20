@@ -6,7 +6,7 @@ from argparse import ArgumentParser, Namespace
 from typing import cast
 
 from altadb.cli.dataset import CLIDataset
-from altadb.repo.dataset import DatasetRepo
+from altadb.repo.upload import UploadRepo
 from altadb.cli.cli_base import CLIUploadInterface
 from altadb.utils.async_utils import gather_with_concurrency
 from altadb.utils.files import (
@@ -89,11 +89,11 @@ class CLIUploadController(CLIUploadInterface):
                     "fileType": "application/dicom",
                 }
             )
-        ds_repo = DatasetRepo(client=self.project.context.client)
+        upload_repo = UploadRepo(client=self.project.context.client)
         import_id: str = (
             (
                 (
-                    ds_repo.import_files(
+                    upload_repo.import_files(
                         org_id=self.org_id,
                         data_store=self.dataset_name,
                         import_name=import_name,
@@ -109,7 +109,7 @@ class CLIUploadController(CLIUploadInterface):
             print(f"Got import id: {import_id}")
             presigned_urls = (
                 (
-                    ds_repo.import_files(
+                    upload_repo.import_files(
                         org_id=self.org_id,
                         data_store=self.dataset_name,
                         import_name=import_name,
@@ -139,7 +139,7 @@ class CLIUploadController(CLIUploadInterface):
                 if not upload_status:
                     print("Error uploading files")
                     return
-                mutation_status = ds_repo.process_import(
+                mutation_status = upload_repo.process_import(
                     org_id=self.org_id,
                     data_store=self.dataset_name,
                     import_id=import_id,
