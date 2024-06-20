@@ -8,10 +8,6 @@ class DatasetRepoInterface(ABC):
     """Abstract interface to Project APIs."""
 
     @abstractmethod
-    def get_datasets(self, org_id: str) -> List[Dict]:
-        """Get all datasets in organization."""
-
-    @abstractmethod
     def check_if_exists(self, org_id: str, dataset_name: str) -> bool:
         """Check if dataset exists."""
 

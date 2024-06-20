@@ -14,27 +14,6 @@ class DatasetRepo(DatasetRepoInterface):
         """Construct Dataset."""
         self.client = client
 
-    def get_datasets(self, org_id: str) -> List[Dict]:
-        """Get all datasets in organization."""
-        query = """
-            query sdkDataStores($orgId: UUID!) {
-                dataStores(orgId: $orgId) {
-                    orgId
-                    name
-                    displayName
-                    createdAt
-                    createdBy
-                    status
-                    updatedAt
-                    importStatuses
-                }
-            }
-        """
-        response: Dict[str, List[Dict]] = self.client.execute_query(
-            query, {"orgId": org_id}
-        )
-        return response["dataStores"]
-
     def check_if_exists(self, org_id: str, dataset_name: str) -> bool:
         """Check if dataset exists."""
         query = """

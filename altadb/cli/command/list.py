@@ -31,7 +31,7 @@ class CLIListController(CLIListInterface):
         toplevel = CLIDataset()
         context = toplevel.context
         org_id = toplevel.creds.org_id
-        datasets: List[Dict] = context.dataset.get_datasets(org_id=org_id)
+        datasets: List[Dict] = toplevel.org.get_datasets(org_id=org_id)
         console = Console()
         table = Table(
             title="Datasets",
