@@ -83,11 +83,11 @@ class Upload:
                         dataset=dataset,
                         import_name=import_name,
                         import_id=import_id,
-                        files_paths=files_list[i : i + 2],
+                        files_paths=files_list[i : i + MAX_FILE_BATCH_SIZE],
                         file_batch_size=batch_size,
                         global_progress_bar=progress_bar,
                     )
-                    for i in range(0, len(files_list), 2)
+                    for i in range(0, len(files_list), MAX_FILE_BATCH_SIZE)
                 ],
             )
 
