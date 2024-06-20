@@ -44,13 +44,6 @@ class CLIController(CLIInterface):
                 description="List all datasets",
             )
         )
-        # self.query = CLIQueryController(
-        #     command.add_parser(
-        #         self.QUERY,
-        #         help="Query a dataset",
-        #         description="Query a dataset",
-        #     )
-        # )
         self.create = CLICreateController(
             command.add_parser(
                 self.CREATE,

@@ -2,7 +2,7 @@
 
 import os
 import gzip
-from typing import Dict, List, Optional, Tuple, Set
+from typing import Callable, Dict, List, Optional, Tuple, Set
 
 import asyncio
 import aiohttp
@@ -163,6 +163,7 @@ async def upload_files(
     progress_bar_name: Optional[str] = "Uploading files",
     keep_progress_bar: bool = True,
     file_batch_size: int = MAX_FILE_BATCH_SIZE,
+    upload_callback: Optional[Callable] = None,
 ) -> List[bool]:
     """Upload files from local path to url (file path, presigned url, file type)."""
 
@@ -197,6 +198,8 @@ async def upload_files(
                         ssl=None if config.verify_ssl else False,
                     ) as response:
                         status = response.status
+                        if upload_callback:
+                            upload_callback(path, status)
         except RetryError as error:
             raise Exception("Unknown problem occurred") from error
 
@@ -211,7 +214,10 @@ async def upload_files(
             for path, url, file_type in files
         ]
         uploaded = await gather_with_concurrency(
-            file_batch_size, coros, progress_bar_name, keep_progress_bar
+            min(MAX_FILE_BATCH_SIZE, file_batch_size),
+            coros,
+            progress_bar_name,
+            keep_progress_bar,
         )
 
     await asyncio.sleep(0.250)  # give time to close ssl connections

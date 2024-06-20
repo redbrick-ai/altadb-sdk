@@ -1,7 +1,9 @@
 """Public interface to upload module."""
 
 import os
-from typing import List, Optional
+from typing import Any, List, Optional
+
+import tqdm  # type: ignore
 
 from altadb.common.constants import MAX_FILE_BATCH_SIZE
 from altadb.common.context import AltaDBContext
@@ -72,60 +74,35 @@ class Upload:
             or {}
         ).get("importId") or ""
         if import_id:
-            # Generate presigned URLs
-            # presigned_urls = (
-            #     (
-            #         self.context.upload.import_files(
-            #             org_id=self.org_id,
-            #             data_store=dataset,
-            #             import_name=import_name,
-            #             import_id=import_id,
-            #             files=[
-            #                 {
-            #                     "filePath": file["filePath"],
-            #                     "fileType": file["fileType"],
-            #                 }
-            #                 for file in files_list
-            #             ],
-            #         )
-            #         or {}
-            #     ).get("importFiles")
-            #     or {}
-            # ).get("urls") or []
-            # if presigned_urls:
-            if True:
+            progress_bar = tqdm.tqdm(desc="Uploading all files", total=len(files_list))
+            # Upload files to presigned URLs
+            coro = gather_with_concurrency(
+                concurrency,
+                [
+                    self.upload_files_intermediate_function(
+                        dataset=dataset,
+                        import_name=import_name,
+                        import_id=import_id,
+                        files_paths=files_list[i : i + 2],
+                        file_batch_size=batch_size,
+                        global_progress_bar=progress_bar,
+                    )
+                    for i in range(0, len(files_list), 2)
+                ],
+            )
 
-                # Upload files to presigned URLs
-                _ = concurrency * batch_size
-                upload_status = await gather_with_concurrency(
-                    concurrency,
-                    [
-                        self.upload_files_intermediate_function(
-                            dataset=dataset,
-                            import_name=import_name,
-                            import_id=import_id,
-                            files_paths=files_list[i : i + _],
-                            file_batch_size=batch_size,
-                        )
-                        for i in range(0, len(files_list), _)
-                    ],
-                    progress_bar_name="uploading all files",
-                    keep_progress_bar=True,
-                )
+            upload_status = await coro
 
-                if not upload_status:
-                    log_error("Error uploading files", True)
+            if not upload_status:
+                log_error("Error uploading files", True)
 
-                mutation_status = self.context.upload.process_import(
-                    org_id=self.org_id,
-                    data_store=dataset,
-                    import_id=import_id,
-                    total_files=len(files),
-                )
-                if not mutation_status:
-                    log_error("Error uploading files", True)
-
-            else:
+            mutation_status = self.context.upload.process_import(
+                org_id=self.org_id,
+                data_store=dataset,
+                import_id=import_id,
+                total_files=len(files),
+            )
+            if not mutation_status:
                 log_error("Error uploading files", True)
         else:
             log_error("Error uploading files", True)
@@ -134,6 +111,7 @@ class Upload:
         self,
         dataset: str,
         import_id: str,
+        global_progress_bar: tqdm.tqdm,
         import_name: Optional[str] = None,
         files_paths: List[dict[str, str]] = [],
         file_batch_size: int = MAX_FILE_BATCH_SIZE,
@@ -173,5 +151,6 @@ class Upload:
             progress_bar_name=f"Batch Progress",
             keep_progress_bar=False,
             file_batch_size=file_batch_size,
+            upload_callback=lambda _, __: global_progress_bar.update(1),
         )
         return all(results)
