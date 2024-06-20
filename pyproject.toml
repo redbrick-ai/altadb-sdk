@@ -1,0 +1,78 @@
+
+[project]
+name = "altadb"
+description = "AltaDB platform Python SDK!"
+readme = "README.md"
+dynamic = ["version"]
+requires-python = ">=3.8,<3.13"
+keywords = ["altadb"]
+dependencies = [
+    "aiohttp<4,>=3.7.4",
+    "dicom2nifti<3",
+    "inquirerpy<1",
+    "natsort<9,>=8.0.2",
+    "nest-asyncio<2,>=1.5.4",
+    "nibabel<6,>=3.2.2",
+    "numpy<2,>=1.15",
+    "packaging<25",
+    "Pillow<11,>=9.0.1",
+    "python-dateutil<3",
+    "requests<3,>=2.23.0",
+    "Rich<14",
+    "rt-utils<2",
+    "shtab<2",
+    "tenacity<9",
+    "tqdm<5",
+    "typing-extensions<5",
+]
+classifiers = [
+  "Programming Language :: Python"
+]
+
+[project.scripts]
+altadb = "altadb.cli:cli_main"
+
+[project.urls]
+Homepage = "https://www.altadb.com"
+Documentation = "https://sdk.altadb.com"
+Changelog = "https://github.com/redbrick-ai/altadb-sdk/releases"
+
+[project.optional-dependencies]
+dev = [
+    "black<=24.1.1",
+    "build<=1.0.3",
+    "flake8<=6.1.0",
+    "gputil<=1.4.0",
+    "mypy<=1.8.0",
+    "mypy-extensions<=1.0.0",
+    "psutil<=5.9.8",
+    "pycodestyle<=2.11.1",
+    "pydocstyle<=6.3.0",
+    "pylint<=3.0.3",
+    "pytest<=7.4.3",
+    "pytest-asyncio<=0.23.2",
+    "pytest-cov<=4.1.0,>=4.0.0",
+    "pytest-randomly<=3.15.0",
+    "pytest-xdist<=3.5.0",
+    "pytest-xdist[psutil]<=3.5.0",
+    "setuptools<=69.2.0",
+    "wheel<=0.42.0",
+]
+
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+
+[tool.setuptools.dynamic]
+version = {attr = "altadb.__version__"}
+readme = {file = ["README.rst"]}
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["altadb*"]
+exclude = ["tests*"]
+
+[tool.setuptools.package-data]
+altadb = ["py.typed"]
