@@ -28,10 +28,10 @@ class CLIListController(CLIListInterface):
 
     def handler(self, args: Namespace) -> None:
         self.args = args
-        toplevel = CLIDataset()
-        context = toplevel.context
-        org_id = toplevel.creds.org_id
-        datasets: List[Dict] = toplevel.org.get_datasets(org_id=org_id)
+        cli_dataset = CLIDataset()
+        datasets: List[Dict] = cli_dataset.org.get_datasets(
+            org_id=cli_dataset.creds.org_id
+        )
         console = Console()
         table = Table(
             title="Datasets",
