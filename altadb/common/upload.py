@@ -14,7 +14,7 @@ class UploadControllerInterface(ABC):
         data_store: str,
         import_name: Optional[str] = None,
         import_id: Optional[str] = None,
-        files: List[Dict[str, str]] = [],
+        files: Optional[List[Dict[str, str]]] = None,
     ) -> Tuple[str, List[str]]:
         """Import files into a dataset."""
 

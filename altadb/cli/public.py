@@ -11,7 +11,6 @@ from altadb.cli.command import (
     CLIConfigController,
     CLIUploadController,
     CLIListController,
-    CLIQueryController,
     CLICreateController,
 )
 from altadb.cli.cli_base import CLIInterface

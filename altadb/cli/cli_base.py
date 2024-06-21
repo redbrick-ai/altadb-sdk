@@ -9,6 +9,8 @@ from altadb.utils.logging import logger
 
 
 class AbstractCLI(ABC):
+    """Abstract CLI class."""
+
     args: Namespace
 
     @abstractmethod
@@ -18,6 +20,8 @@ class AbstractCLI(ABC):
 
 
 class CLIListInterface(AbstractCLI):
+    """CLI List Interface."""
+
     @abstractmethod
     def handler(self, args: Namespace) -> None:
         """Handle the CLI command."""
@@ -30,6 +34,8 @@ class CLIListInterface(AbstractCLI):
 
 
 class CLIQueryInterface(AbstractCLI):
+    """CLI Query Interface."""
+
     @abstractmethod
     def handler(self, args: Namespace) -> None:
         """Handle the CLI command."""
@@ -42,6 +48,8 @@ class CLIQueryInterface(AbstractCLI):
 
 
 class CLICreateInterface(AbstractCLI):
+    """CLI Create Interface."""
+
     @abstractmethod
     def handler(self, args: Namespace) -> None:
         """Handle the CLI command."""
@@ -87,7 +95,7 @@ class CLIConfigInterface(AbstractCLI):
     """CLI config command interface."""
 
     args: Namespace
-    project: CLIDataset
+    cli_dataset: CLIDataset
 
     LIST = "list"
     SET = "set"
@@ -133,7 +141,7 @@ class CLIUploadInterface(AbstractCLI):
     """CLI upload interface."""
 
     args: Namespace
-    project: CLIDataset
+    cli_dataset: CLIDataset
 
     @abstractmethod
     def handler(self, args: Namespace) -> None:

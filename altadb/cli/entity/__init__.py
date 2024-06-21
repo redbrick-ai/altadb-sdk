@@ -1,4 +1,4 @@
-"""CLI project entities."""
+"""CLI dataset entities."""
 
 from altadb.cli.entity.creds import CLICredentials
 from altadb.cli.entity.conf import CLIConfiguration

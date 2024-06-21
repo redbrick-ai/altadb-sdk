@@ -3,12 +3,10 @@
 import os
 import asyncio
 from argparse import ArgumentParser, Namespace
-from typing import cast
 
 from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIUploadInterface
 from altadb.common.constants import MAX_UPLOAD_CONCURRENCY
-from altadb.dataset import AltaDBDataset
 
 
 class CLIUploadController(CLIUploadInterface):
@@ -43,7 +41,7 @@ class CLIUploadController(CLIUploadInterface):
     def handler(self, args: Namespace) -> None:
         """Handle upload command."""
         self.args = args
-        self.project = CLIDataset(self.args.dataset)
+        self.cli_dataset = CLIDataset(self.args.dataset)
         self.handle_upload()
 
     def handle_upload(self) -> None:
@@ -51,7 +49,7 @@ class CLIUploadController(CLIUploadInterface):
         path = os.path.realpath(self.args.path)
 
         asyncio.run(
-            self.project.dataset.upload.upload_files(
+            self.cli_dataset.dataset.upload.upload_files(
                 self.args.dataset,
                 path,
                 self.args.name or None,

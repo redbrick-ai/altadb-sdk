@@ -1,7 +1,7 @@
 """Public interface to upload module."""
 
 import os
-from typing import Any, Callable, List, Optional
+from typing import Callable, List, Optional
 
 import tqdm  # type: ignore
 
@@ -35,7 +35,6 @@ class Upload:
         concurrency: int = MAX_UPLOAD_CONCURRENCY,
     ) -> None:
         """Upload files."""
-
         files: list[str] = []
         if os.path.isdir(path):
             _files = find_files_recursive(
@@ -46,7 +45,7 @@ class Upload:
         else:
             files = [path]
         if not path:
-            logger.warn("No file path provided")
+            logger.warning("No file path provided")
             return
         # Now that we have the files list, let us generate the presigned URLs
         files_list: list[dict[str, str]] = []
@@ -104,10 +103,12 @@ class Upload:
         dataset: str,
         import_id: str,
         import_name: Optional[str] = None,
-        files_paths: List[dict[str, str]] = [],
+        files_paths: Optional[List[dict[str, str]]] = None,
         upload_callback: Optional[Callable] = None,
     ) -> bool:
+        """Upload files to presigned URLs."""
         # Generate presigned URLs for concurrency number of files at a time
+        files_paths = files_paths or []
         _, presigned_urls = self.context.upload.import_files(
             org_id=self.org_id,
             data_store=dataset,
@@ -134,7 +135,7 @@ class Upload:
                 )
                 for file_path, presigned_url in zip(files_paths, presigned_urls)
             ],
-            progress_bar_name=f"Batch Progress",
+            progress_bar_name="Batch Progress",
             keep_progress_bar=False,
             upload_callback=upload_callback,
         )

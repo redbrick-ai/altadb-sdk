@@ -1,7 +1,7 @@
 """Main CLI project."""
 
 import os
-from typing import Optional, cast
+from typing import Optional
 
 from rich.console import Console
 
@@ -12,7 +12,6 @@ from altadb.organization import AltaDBOrganization
 from altadb.dataset import AltaDBDataset
 from altadb.cli.entity import CLICache, CLIConfiguration, CLICredentials
 from altadb.utils.common_utils import config_path
-from altadb.utils.logging import assert_validation, logger
 
 
 class CLIDataset:
@@ -37,7 +36,7 @@ class CLIDataset:
 
     @property
     def context(self) -> AltaDBContext:
-        """Get RedBrick context."""
+        """Get AltaDB context."""
         if not self._context:
             self._context = _populate_context(self.creds.context)
         return self._context
@@ -64,7 +63,7 @@ class CLIDataset:
 
     @property
     def dataset(self) -> AltaDBDataset:
-        """Get project object."""
+        """Get dataset object."""
         if not self._dataset:
             console = Console()
             with console.status("Fetching project") as status:

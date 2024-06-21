@@ -1,12 +1,15 @@
+"""Create command controller."""
+
 from argparse import ArgumentParser, Namespace
-from altadb.cli.cli_base import CLICreateInterface
-from altadb.cli.dataset import CLIDataset
-from altadb.config import config
-from altadb.repo.dataset import DatasetRepo
 
 from rich.console import Console
 from rich.table import Table
 from rich.box import ROUNDED
+
+from altadb.cli.cli_base import CLICreateInterface
+from altadb.cli.dataset import CLIDataset
+from altadb.config import config
+from altadb.repo.dataset import DatasetRepo
 
 
 class CLICreateController(CLICreateInterface):
@@ -17,10 +20,12 @@ class CLICreateController(CLICreateInterface):
         parser.add_argument("dataset", help="Dataset name")
 
     def handler(self, args: Namespace) -> None:
+        """Handle controller."""
         self.args = args
         self.handle_create()
 
     def handle_create(self) -> None:
+        """Handle create command."""
         cli_dataset = CLIDataset()
         ds_repo = DatasetRepo(client=cli_dataset.context.client)
         if ds_repo.check_if_exists(
@@ -53,4 +58,3 @@ class CLICreateController(CLICreateInterface):
         if config.log_info:
             console.print(table)
             console.print("Dataset created successfully.")
-        return None
