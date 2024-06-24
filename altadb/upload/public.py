@@ -35,7 +35,7 @@ class Upload:
         concurrency: int = MAX_UPLOAD_CONCURRENCY,
     ) -> None:
         """Upload files."""
-        files: list[str] = []
+        files: List[str] = []
         if os.path.isdir(path):
             _files = find_files_recursive(
                 path, set(DICOM_FILE_TYPES.keys()), multiple=False
@@ -48,7 +48,7 @@ class Upload:
             logger.warning("No file path provided")
             return
         # Now that we have the files list, let us generate the presigned URLs
-        files_list: list[dict[str, str]] = []
+        files_list: List[dict[str, str]] = []
         for file in files:
             files_list.append(
                 {
