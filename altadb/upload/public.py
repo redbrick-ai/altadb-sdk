@@ -1,7 +1,7 @@
 """Public interface to upload module."""
 
 import os
-from typing import Callable, List, Optional
+from typing import Callable, Dict, List, Optional
 
 import tqdm  # type: ignore
 
@@ -35,7 +35,7 @@ class Upload:
         concurrency: int = MAX_UPLOAD_CONCURRENCY,
     ) -> None:
         """Upload files."""
-        files: list[str] = []
+        files: List[str] = []
         if os.path.isdir(path):
             _files = find_files_recursive(
                 path, set(DICOM_FILE_TYPES.keys()), multiple=False
@@ -48,7 +48,7 @@ class Upload:
             logger.warning("No file path provided")
             return
         # Now that we have the files list, let us generate the presigned URLs
-        files_list: list[dict[str, str]] = []
+        files_list: List[Dict[str, str]] = []
         for file in files:
             files_list.append(
                 {
@@ -103,7 +103,7 @@ class Upload:
         dataset: str,
         import_id: str,
         import_name: Optional[str] = None,
-        files_paths: Optional[List[dict[str, str]]] = None,
+        files_paths: Optional[List[Dict[str, str]]] = None,
         upload_callback: Optional[Callable] = None,
     ) -> bool:
         """Upload files to presigned URLs."""

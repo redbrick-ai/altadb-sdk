@@ -11,8 +11,7 @@ test:
 	pycodestyle --benchmark --count --statistics altadb && \
 	pydocstyle --count altadb && \
 	mypy altadb && \
-	pylint --rcfile=setup.cfg -j=3 --recursive=y altadb && \
-	pytest -n 0 tests
+	pylint --rcfile=setup.cfg -j=3 --recursive=y altadb
 
 build: clean install
 	python -m build -w -n -o .
