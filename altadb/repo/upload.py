@@ -19,11 +19,12 @@ class UploadRepo(UploadControllerInterface):
         data_store: str,
         import_name: Optional[str] = None,
         import_id: Optional[str] = None,
-        files: List[Dict[str, str]] = [],
+        files: Optional[List[Dict[str, str]]] = None,
     ) -> Tuple[str, List[str]]:
+        """Import files into a dataset."""
+        files = files or []
         if not any([import_id, import_name]):
             raise ValueError("Either import_id or import_name must be provided")
-        """Import files into a dataset."""
         query_string = """
             mutation importFiles($orgId: UUID!, $dataStore: String!, $files: [ImportJobFileInput!]!, $importName: String, $importId: UUID) {
                 importFiles(orgId: $orgId, dataStore: $dataStore, files: $files, importName: $importName, importId: $importId) {

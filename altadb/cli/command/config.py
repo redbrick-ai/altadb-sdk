@@ -98,7 +98,7 @@ class CLIConfigController(CLIConfigInterface):
     def handler(self, args: Namespace) -> None:
         """Handle config command."""
         self.args = args
-        self.project = CLIDataset()
+        self.cli_dataset = CLIDataset()
 
         if not args.sub_command:
             self.handle_config()
@@ -119,22 +119,24 @@ class CLIConfigController(CLIConfigInterface):
 
     def handle_config(self) -> None:
         """Handle empty sub command."""
-        if self.project.creds.exists:
+        if self.cli_dataset.creds.exists:
             if not self.args.force:
                 confirmation = ConfirmPrompt(
                     message="Credentials file already exists. Overwrite?", default=False
                 ).execute()
                 if not confirmation:
                     return
-            self.project.creds.remove()
+            self.cli_dataset.creds.remove()
 
         self.handle_add()
 
     def handle_list(self) -> None:
         """Handle list sub command."""
-        assert_validation(self.project.creds.exists, "Credentials file does not exist")
-        default_profile: str = self.project.creds.selected_profile
-        profiles: List[str] = self.project.creds.profile_names
+        assert_validation(
+            self.cli_dataset.creds.exists, "Credentials file does not exist"
+        )
+        default_profile: str = self.cli_dataset.creds.selected_profile
+        profiles: List[str] = self.cli_dataset.creds.profile_names
         rows: List[List[str]] = []
         table = Table(title="[bold green]AltaDB Profiles", expand=True, box=ROUNDED)
         columns_set = False
@@ -142,7 +144,7 @@ class CLIConfigController(CLIConfigInterface):
             if not columns_set:
                 table.add_column("Name")
             row: List[str] = [profile]
-            for key, value in self.project.creds.get_profile(profile).items():
+            for key, value in self.cli_dataset.creds.get_profile(profile).items():
                 if not columns_set:
                     table.add_column(
                         key.capitalize(),
@@ -175,12 +177,14 @@ class CLIConfigController(CLIConfigInterface):
 
     def handle_set(self) -> None:
         """Handle set sub command."""
-        assert_validation(self.project.creds.exists, "Credentials file does not exist")
+        assert_validation(
+            self.cli_dataset.creds.exists, "Credentials file does not exist"
+        )
         profile = CLIInputProfile(
-            self.args.profile, self.project.creds.profile_names
+            self.args.profile, self.cli_dataset.creds.profile_names
         ).get()
-        self.project.creds.set_default(profile)
-        self.project.creds.save()
+        self.cli_dataset.creds.set_default(profile)
+        self.cli_dataset.creds.save()
 
     def handle_add(self) -> None:
         """Handle add sub command."""
@@ -189,44 +193,46 @@ class CLIConfigController(CLIConfigInterface):
         secret = CLIInputAPISecretKey(self.args.secret).get()
         url = CLIInputURL(self.args.url).get()
         profile = CLIInputProfile(
-            self.args.profile, self.project.creds.profile_names, True
+            self.args.profile, self.cli_dataset.creds.profile_names, True
         ).get()
 
-        self.project.creds.add_profile(profile, api_key, secret, org_id, url)
+        self.cli_dataset.creds.add_profile(profile, api_key, secret, org_id, url)
         self.handle_verify(profile)
 
-        self.project.creds.set_default(profile)
-        self.project.creds.save()
+        self.cli_dataset.creds.set_default(profile)
+        self.cli_dataset.creds.save()
 
     def handle_remove(self) -> None:
         """Handle remove sub command."""
-        assert_validation(self.project.creds.exists, "Credentials file does not exist")
+        assert_validation(
+            self.cli_dataset.creds.exists, "Credentials file does not exist"
+        )
         profile = CLIInputProfile(
-            self.args.profile, self.project.creds.profile_names
+            self.args.profile, self.cli_dataset.creds.profile_names
         ).get()
 
-        self.project.creds.remove_profile(profile)
-        self.project.creds.save()
+        self.cli_dataset.creds.remove_profile(profile)
+        self.cli_dataset.creds.save()
 
     def handle_clear(self) -> None:
         """Handle clear sub command."""
-        self.project.creds.remove()
+        self.cli_dataset.creds.remove()
 
     def handle_verify(self, profile: Optional[str] = None) -> None:
         """Handle verify sub command."""
         if profile is None:
             selected_profile = None
             try:
-                selected_profile = self.project.creds.selected_profile
+                selected_profile = self.cli_dataset.creds.selected_profile
             except AssertionError:
                 pass
             profile = CLIInputProfile(
                 self.args.profile,
-                self.project.creds.profile_names,
+                self.cli_dataset.creds.profile_names,
                 default=selected_profile,
             ).get()
 
-        profile_details = self.project.creds.get_profile(profile)
+        profile_details = self.cli_dataset.creds.get_profile(profile)
         context = _populate_context(
             AltaDBContext(
                 api_key=profile_details["key"].strip(),

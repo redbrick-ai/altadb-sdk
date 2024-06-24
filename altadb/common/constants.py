@@ -7,7 +7,7 @@ MAX_FILE_UPLOADS = 50
 MAX_RETRY_ATTEMPTS = 3
 REQUEST_TIMEOUT = 30
 
-DEFAULT_URL = "https://preview.altadb.com"
+DEFAULT_URL = "https://app.altadb.com"
 
 PEERLESS_ERRORS = (
     KeyboardInterrupt,

@@ -6,10 +6,10 @@ from altadb.common.context import AltaDBContext
 
 class AltaDBOrganization:
     """
-    Representation of RedBrick organization.
+    Representation of AltaDB organization.
 
     The :attr:`altadb.organization.AltaDBOrganization` object allows you to programmatically interact with
-    your RedBrick organization. This class provides methods for querying your
+    your AltaDB organization. This class provides methods for querying your
     organization and doing other high level actions. Retrieve the organization object in the following way:
 
     .. code:: python

@@ -5,7 +5,7 @@ from typing import Dict, List, Optional
 
 
 class DatasetRepoInterface(ABC):
-    """Abstract interface to Project APIs."""
+    """Abstract interface to Dataset APIs."""
 
     @abstractmethod
     def check_if_exists(self, org_id: str, dataset_name: str) -> bool:
@@ -18,9 +18,9 @@ class DatasetRepoInterface(ABC):
     @abstractmethod
     def get_project(self, org_id: str, project_id: str) -> Dict:
         """
-        Get project name and status.
+        Get dataset name and status.
 
-        Raise an exception if project does not exist.
+        Raise an exception if dataset does not exist.
         """
 
     @abstractmethod

@@ -77,8 +77,8 @@ html_favicon = "_static/favicon.ico"
 
 # https://pradyunsg.me/furo/customisation
 html_theme_options = {
-    "light_logo": "redbrick.svg",
-    "dark_logo": "redbrick--darkmode.svg",
+    # "light_logo": "redbrick.svg",
+    # "dark_logo": "redbrick--darkmode.svg",
     "source_repository": "https://github.com/redbrick-ai/altadb-sdk/",
     "source_branch": "master",
     "source_directory": "docs/",

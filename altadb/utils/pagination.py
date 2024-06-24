@@ -1,4 +1,4 @@
-"""A utility iterator to handle default RedBrick pagination behavior."""
+"""A utility iterator to handle default AltaDB pagination behavior."""
 
 from typing import Any, Dict, List, Optional, Callable, Tuple
 

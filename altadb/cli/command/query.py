@@ -1,13 +1,15 @@
+"""CLI query command controller."""
+
 from argparse import ArgumentParser, Namespace
 from typing import cast
-from altadb.cli.cli_base import CLIQueryInterface
-from altadb.cli.dataset import CLIDataset
 
 from rich.console import Console
 from rich.table import Table
 from rich.box import ROUNDED
 
 from altadb.config import config
+from altadb.cli.dataset import CLIDataset
+from altadb.cli.cli_base import CLIQueryInterface
 
 
 class CLIQueryController(CLIQueryInterface):
@@ -23,23 +25,26 @@ class CLIQueryController(CLIQueryInterface):
             default=20,
             help="Number of rows to display",
         )
+        cli_dataset = CLIDataset("")
+        self.cli_dataset = cast(CLIDataset, cli_dataset)
 
     def handler(self, args: Namespace) -> None:
+        """Handle list command."""
         self.args = args
-        project = CLIDataset("")
-        self.project = cast(CLIDataset, project)
         self.handle_query()
 
     def handle_query(self) -> None:
+        """Handle query command."""
+        # pylint: disable=too-many-locals
         dataset = self.args.dataset
         number = self.args.number
         cli_dataset = CLIDataset("")
 
-        if not self.project.context.dataset.check_if_exists(
+        if not self.cli_dataset.context.dataset.check_if_exists(
             org_id=cli_dataset.creds.org_id, dataset_name=dataset
         ):
             raise ValueError("Dataset does not exist.")
-        status = self.project.context.dataset.get_data_store_imports(
+        status = self.cli_dataset.context.dataset.get_data_store_imports(
             org_id=cli_dataset.creds.org_id,
             data_store=dataset,
             first=number,
@@ -82,4 +87,3 @@ class CLIQueryController(CLIQueryInterface):
             if config.log_info:
                 console.print(table)
                 console.print("Dataset queried successfully.")
-        return None

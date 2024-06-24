@@ -123,7 +123,7 @@ class CLICache:
         ]
 
     def clear_cache(self, all_caches: bool = False) -> None:
-        """Clear project cache."""
+        """Clear dataset cache."""
         if not os.path.isdir(self._cache_dir):
             return
 

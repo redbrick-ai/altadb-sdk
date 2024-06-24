@@ -9,7 +9,7 @@ class AltaDBContext:
     """Basic context for accessing low level functionality."""
 
     def __init__(self, api_key: str, secret: str, url: str) -> None:
-        """Construct RedBrick client singleton."""
+        """Construct AltaDB client singleton."""
         # pylint: disable=import-outside-toplevel
         from .client import AltaDBClient
         from .upload import UploadControllerInterface

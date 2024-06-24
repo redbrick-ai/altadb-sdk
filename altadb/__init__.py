@@ -100,10 +100,10 @@ def get_dataset(
     """
     Get an existing AltaDB dataset object.
 
-    Project objects allow you to interact with your AltaDB projects,
+    Dataset objects allow you to interact with your AltaDB projects,
     and perform actions like importing data, exporting data etc.
 
-    >>> project = altadb.get_dataset(org_id, project_id, api_key)
+    >>> dataset = altadb.get_dataset(org_id, project_id, api_key)
 
     Parameters
     ---------------
@@ -111,7 +111,7 @@ def get_dataset(
         Your organizations unique id https://app.altadb.com/<org_id>/
 
     dataset: str
-        Your projects unique id https://app.altadb.com/<org_id>/<project_id>/
+        Your projects unique id https://app.altadb.com/<org_id>/datasets/<dataset_name>
 
     api_key: str
         Your visible api_key, can be created from the AltaDB platform.
@@ -120,7 +120,7 @@ def get_dataset(
         Your secret key, can be created from the AltaDB platform.
 
     url: str = DEFAULT_URL
-        Should default to https://preview.altadb.com
+        Should default to https://app.altadb.com
     """
     context = _populate_context(AltaDBContext(api_key=api_key, secret=secret, url=url))
     return AltaDBDataset(context, org_id, dataset)

@@ -1,6 +1,5 @@
 """Handlers to access APIs for getting projects."""
 
-import json
 from typing import List, Dict, Optional
 
 from altadb.common.client import AltaDBClient
@@ -8,7 +7,7 @@ from altadb.common.dataset import DatasetRepoInterface
 
 
 class DatasetRepo(DatasetRepoInterface):
-    """Class to manage interaction with project APIs."""
+    """Class to manage interaction with dataset APIs."""
 
     def __init__(self, client: AltaDBClient) -> None:
         """Construct Dataset."""
@@ -62,9 +61,9 @@ class DatasetRepo(DatasetRepoInterface):
 
     def get_project(self, org_id: str, project_id: str) -> Dict:
         """
-        Get project name and status.
+        Get dataset name and status.
 
-        Raise an exception if project does not exist.
+        Raise an exception if dataset does not exist.
         """
         query = """
             query sdkDataStore($orgId: UUID!, $name: String!) {
@@ -85,7 +84,7 @@ class DatasetRepo(DatasetRepoInterface):
         if response.get("project"):
             return response["project"]
 
-        raise Exception("Project does not exist")
+        raise Exception("Dataset does not exist")
 
     def get_org(self, org_id: str) -> Dict:
         """Get organization."""
