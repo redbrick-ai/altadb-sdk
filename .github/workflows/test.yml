@@ -37,10 +37,6 @@ jobs:
     runs-on: ${{ matrix.os }}
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && !github.event.pull_request.draft)
     env:
-      ALTADB_SDK_API_KEY: ${{ secrets.ALTADB_SDK_API_KEY }}
-      ALTADB_SDK_URL: ${{ secrets.ALTADB_SDK_URL }}
-      ALTADB_SDK_ORG_ID: ${{ secrets.ALTADB_SDK_ORG_ID }}
-      ALTADB_SDK_PROJECT_ID: ${{ secrets.ALTADB_SDK_PROJECT_ID }}
       ALTADB_SDK_SOURCE: GITHUB
       ALTADB_SDK_DEBUG: 1
     strategy:
