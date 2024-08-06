@@ -57,46 +57,49 @@ class Upload:
                     "fileType": "application/dicom",
                 }
             )
-        import_id, _ = self.context.upload.import_files(
-            org_id=self.org_id,
-            data_store=dataset,
-            import_name=import_name,
-        )
 
-        if not import_id:
-            log_error("Unable to import", True)
+        if not files_list:
+            log_error(f"No files found in recursive trail of path: {path}")
+        else:
+            import_id, _ = self.context.upload.import_files(
+                org_id=self.org_id,
+                data_store=dataset,
+                import_name=import_name,
+            )
+            if not import_id:
+                log_error("Unable to import", True)
 
-        progress_bar = tqdm.tqdm(desc="Uploading all files", total=len(files_list))
+            progress_bar = tqdm.tqdm(desc="Uploading all files", total=len(files_list))
 
-        def _upload_callback(*_):
-            progress_bar.update(1)
+            def _upload_callback(*_):
+                progress_bar.update(1)
 
-        # Upload files to presigned URLs
-        upload_status = await gather_with_concurrency(
-            min(5, concurrency),
-            [
-                self.upload_files_intermediate_function(
-                    dataset=dataset,
-                    import_name=import_name,
-                    import_id=import_id,
-                    files_paths=files_list[i : i + MAX_FILE_BATCH_SIZE],
-                    upload_callback=_upload_callback,
-                )
-                for i in range(0, len(files_list), MAX_FILE_BATCH_SIZE)
-            ],
-        )
+            # Upload files to presigned URLs
+            upload_status = await gather_with_concurrency(
+                min(5, concurrency),
+                [
+                    self.upload_files_intermediate_function(
+                        dataset=dataset,
+                        import_name=import_name,
+                        import_id=import_id,
+                        files_paths=files_list[i : i + MAX_FILE_BATCH_SIZE],
+                        upload_callback=_upload_callback,
+                    )
+                    for i in range(0, len(files_list), MAX_FILE_BATCH_SIZE)
+                ],
+            )
 
-        if not upload_status:
-            log_error("Error uploading files", True)
+            if not upload_status:
+                log_error("Error uploading files", True)
 
-        mutation_status = self.context.upload.process_import(
-            org_id=self.org_id,
-            data_store=dataset,
-            import_id=import_id,
-            total_files=len(files),
-        )
-        if not mutation_status:
-            log_error("Error finalizing the import", True)
+            mutation_status = self.context.upload.process_import(
+                org_id=self.org_id,
+                data_store=dataset,
+                import_id=import_id,
+                total_files=len(files),
+            )
+            if not mutation_status:
+                log_error("Error finalizing the import", True)
 
     async def upload_files_intermediate_function(
         self,
