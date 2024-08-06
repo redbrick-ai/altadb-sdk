@@ -41,7 +41,7 @@ class Upload:
         """Upload files."""
         files: List[str] = []
         if not path:
-            logger.warning(f"No file path provided")
+            logger.warning("No file path provided")
             return
         if not os.path.exists(path):
             logger.warning(f"Provided path {path} does not exist.")
