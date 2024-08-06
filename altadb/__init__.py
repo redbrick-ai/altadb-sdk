@@ -17,7 +17,7 @@ from altadb.utils.common_utils import config_migration
 from .config import config
 from .version_check import version_check
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 # windows event loop close bug https://github.com/encode/httpx/issues/914#issuecomment-622586610
 try:
