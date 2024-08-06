@@ -17,6 +17,9 @@ from altadb.utils.files import (
     upload_files,
 )
 
+SUPPORTED_UPLOAD_FILE_TYPES = [
+    *list(DICOM_FILE_TYPES.keys()),
+]
 
 class Upload:
     """Primary interface for uploading to a dataset."""
@@ -49,9 +52,12 @@ class Upload:
             files = [_file[0] for _file in _files if _file]
 
         else:
-            files = [path]
+            if get_file_type(path) in SUPPORTED_UPLOAD_FILE_TYPES:
+                files = [path]
+            else:
+                logger.warning(f"File {path} is not supported")
         if not files:
-            logger.warning(f"No files found in recursive trail of path: {path}")
+            logger.warning(f"No files found in path {path}")
             return
 
         # Now that we have the files list, let us generate the presigned URLs
@@ -91,7 +97,6 @@ class Upload:
                 )
                 for i in range(0, len(files_list), MAX_FILE_BATCH_SIZE)
             ],
-            return_exceptions=True,
         )
 
         if not upload_status:
