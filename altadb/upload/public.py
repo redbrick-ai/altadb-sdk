@@ -21,6 +21,7 @@ SUPPORTED_UPLOAD_FILE_TYPES = [
     *list(DICOM_FILE_TYPES.keys()),
 ]
 
+
 class Upload:
     """Primary interface for uploading to a dataset."""
 
