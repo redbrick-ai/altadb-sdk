@@ -2,7 +2,7 @@
 
 import os
 import gzip
-from typing import Callable, Dict, List, Optional, Tuple, Set
+from typing import Any, Callable, Dict, List, Optional, Tuple, Set
 
 import asyncio
 import aiohttp
@@ -194,10 +194,13 @@ async def upload_files(
                 retry=retry_if_not_exception_type(KeyboardInterrupt),
             ):
                 with attempt:
-                    _ = {"headers": headers, "data": data}
+                    request_params: Dict[str, Any] = {
+                        "headers": headers,
+                        "data": data,
+                    }
                     if not config.verify_ssl:
-                        _["ssl"] = False
-                    async with session.put(url, **_) as response:
+                        request_params["ssl"] = False
+                    async with session.put(url, **request_params) as response:
                         status = response.status
         except RetryError as error:
             raise Exception("Unknown problem occurred") from error
@@ -256,9 +259,9 @@ async def download_files(
                 retry=retry_if_not_exception_type(KeyboardInterrupt),
             ):
                 with attempt:
-                    _ = {}
+                    request_params: Dict[str, bool] = {}
                     if not config.verify_ssl:
-                        _["ssl"] = False
+                        request_params["ssl"] = False
                     async with session.get(URL(url, encoded=True), **_) as response:
                         if response.status == 200:
                             headers = dict(response.headers)
