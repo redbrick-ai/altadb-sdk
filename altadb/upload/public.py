@@ -41,7 +41,7 @@ class Upload:
         """Upload files."""
         files: List[str] = []
         if not path:
-            logger.warning(f"No file path {path} provided")
+            logger.warning(f"No file path provided")
             return
         if not os.path.exists(path):
             logger.warning(f"Provided path {path} does not exist.")
@@ -53,7 +53,8 @@ class Upload:
             files = [_file[0] for _file in _files if _file]
 
         else:
-            if get_file_type(path) in SUPPORTED_UPLOAD_FILE_TYPES:
+            file_type = get_file_type(path)[0]
+            if file_type in SUPPORTED_UPLOAD_FILE_TYPES:
                 files = [path]
             else:
                 logger.warning(f"File {path} is not supported")
