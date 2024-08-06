@@ -17,6 +17,10 @@ from altadb.utils.files import (
     upload_files,
 )
 
+SUPPORTED_UPLOAD_FILE_TYPES = [
+    *list(DICOM_FILE_TYPES.keys()),
+]
+
 
 class Upload:
     """Primary interface for uploading to a dataset."""
@@ -36,6 +40,12 @@ class Upload:
     ) -> None:
         """Upload files."""
         files: List[str] = []
+        if not path:
+            logger.warning("No file path provided")
+            return
+        if not os.path.exists(path):
+            logger.warning(f"Provided path {path} does not exist.")
+            return
         if os.path.isdir(path):
             _files = find_files_recursive(
                 path, set(DICOM_FILE_TYPES.keys()), multiple=False
@@ -43,10 +53,15 @@ class Upload:
             files = [_file[0] for _file in _files if _file]
 
         else:
-            files = [path]
-        if not path:
-            logger.warning("No file path provided")
+            file_type = get_file_type(path)[0]
+            if file_type in SUPPORTED_UPLOAD_FILE_TYPES:
+                files = [path]
+            else:
+                logger.warning(f"File {path} is not supported")
+        if not files:
+            logger.warning(f"No files found in path {path}")
             return
+
         # Now that we have the files list, let us generate the presigned URLs
         files_list: List[Dict[str, str]] = []
         for file in files:
@@ -57,12 +72,12 @@ class Upload:
                     "fileType": "application/dicom",
                 }
             )
+
         import_id, _ = self.context.upload.import_files(
             org_id=self.org_id,
             data_store=dataset,
             import_name=import_name,
         )
-
         if not import_id:
             log_error("Unable to import", True)
 

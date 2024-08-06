@@ -121,7 +121,7 @@ class AltaDBClient:
         logger.debug("Executing async: " + query.strip().split("\n")[0])
         async with aio_session.post(
             self.url,
-            timeout=REQUEST_TIMEOUT,
+            timeout=aiohttp.ClientTimeout(total=REQUEST_TIMEOUT),
             headers=self.headers,
             data=self.prepare_query(query, variables),
         ) as response:
