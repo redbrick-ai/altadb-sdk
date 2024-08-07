@@ -259,10 +259,12 @@ async def download_files(
                 retry=retry_if_not_exception_type(KeyboardInterrupt),
             ):
                 with attempt:
-                    request_params: Dict[str, bool] = {}
+                    request_params: Dict[str, Any] = {}
                     if not config.verify_ssl:
                         request_params["ssl"] = False
-                    async with session.get(URL(url, encoded=True), **_) as response:
+                    async with session.get(
+                        URL(url, encoded=True), **request_params
+                    ) as response:
                         if response.status == 200:
                             headers = dict(response.headers)
                             data = await response.read()
