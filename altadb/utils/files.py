@@ -352,7 +352,6 @@ def create_dicom_dataset(
     sc = instance_metadata["metaData"].get("00180050")
     if sc:
         ds_file.SliceThickness = sc["Value"]
-        print("SliceThickness: ", ds_file.SliceThickness)
 
     ds_file.BitsAllocated = instance_metadata["metaData"]["00280100"]["Value"]
     ds_file.PixelRepresentation = instance_metadata["metaData"]["00280103"]["Value"]

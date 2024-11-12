@@ -178,7 +178,5 @@ class AltaDBClient:
     ) -> bytes:
         """Get file content using asyncio."""
         async with aio_session.get(url, headers=self.headers) as response:
-            print("URL: ", url)
-            print(f"Status: {response.status}")
             data = await response.content.read()
             return data

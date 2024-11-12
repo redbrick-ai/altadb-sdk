@@ -3,7 +3,7 @@
 import json
 import os
 import asyncio
-from typing import Dict, List
+from typing import Dict, List, Optional
 import aiohttp
 
 # from altadb.dataset import AltaDBDataset
@@ -64,24 +64,24 @@ class Export:
         self,
         dataset_name: str,
         path: str,
-        concurrency: int = MAX_CONCURRENCY,
     ) -> None:
         """Export dataset to folder."""
-        print(
-            f"Exporting dataset {dataset_name} to folder {path} with concurrency {concurrency}"
-        )
-        print("Context dataset: ", self.context.dataset)
-        ds_imports = self.context.dataset.get_data_store_imports(
-            org_id=self.org_id, data_store=dataset_name
-        )
-        print("DS Imports: ", json.dumps(ds_imports, indent=2))
-        print("DS Imports length: ", len(ds_imports))
-        await asyncio.gather(
-            *[
-                self.fetch_and_save_image_data(index, item, path)
-                for index, item in enumerate(ds_imports)
-            ]
-        )
+        first_iteration: bool = True
+        end_cursor: Optional[str] = None
+        while first_iteration or (not first_iteration and end_cursor):
+            ds_imports = self.context.dataset.get_data_store_imports(
+                org_id=self.org_id, data_store=dataset_name, first=5, cursor=end_cursor
+            )
+            await asyncio.gather(
+                *[
+                    self.fetch_and_save_image_data(
+                        index, item, f"{path}/{dataset_name}"
+                    )
+                    for index, item in enumerate(ds_imports)
+                ]
+            )
+            first_iteration = False
+            end_cursor = ds_imports[-1].get("cursor")
 
     async def fetch_and_save_image_data(
         self, index: int, item: Dict, source_dir: str
@@ -90,15 +90,11 @@ class Export:
         image_content_url = item["url"]
         series_id = item["seriesId"]
         image_content_url = image_content_url.replace("altadb://", "")
-        print("Image content URL: ", image_content_url)
         image_content_url = f"{self.context.client.base_url}{image_content_url}"
-        print("Image content URL: ", image_content_url)
         async with aiohttp.ClientSession() as aiosession:
             response = await self.context.client.get_file_content_async(
                 aiosession, image_content_url
             )
-            print("Response: ", response)
-
             res_json = json.loads(response)
             if not os.path.exists(source_dir):
                 os.makedirs(source_dir)
