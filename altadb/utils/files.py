@@ -6,8 +6,12 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Set
 
 import asyncio
 import aiohttp
+
 import pydicom
+import pydicom.tag
 import pydicom.uid
+from pydicom.datadict import DicomDictionary
+
 from yarl import URL
 from tenacity import Retrying, RetryError
 from tenacity.retry import retry_if_not_exception_type
@@ -340,11 +344,50 @@ def create_dicom_dataset(
 
     # Add image data
     ds_file = pydicom.Dataset()
+    ds_file.NumberOfFrames = frame_count
     ds_file.file_meta = file_meta  # type: ignore
 
+    add_metadata_to_dataset(ds_file, instance_metadata)
+
+    ds_file.PixelData = pydicom.encaps.encapsulate(frame_contents)
+    return ds_file
+
+
+ATOMIC_VRs = [
+    "AE",
+    "AS",
+    "AT",
+    "CS",
+    "DA",
+    "DS",
+    "DT",
+    "FL",
+    "FD",
+    "IS",
+    "LO",
+    "LT",
+    "OB",
+    "OD",
+    "OF",
+    "OW",
+    "PN",
+    "SH",
+    "SL",
+    "SQ",
+    "SS",
+    "ST",
+    "TM",
+    "UI",
+    "UL",
+    "UN",
+    "US",
+]
+
+
+def add_metadata_to_dataset(ds_file: pydicom.Dataset, instance_metadata: Dict) -> None:
+    """Add metadata to dataset."""
     ds_file.Rows = instance_metadata["metaData"]["00280010"]["Value"]
     ds_file.Columns = instance_metadata["metaData"]["00280011"]["Value"]
-    ds_file.NumberOfFrames = frame_count
     ds_file.SamplesPerPixel = instance_metadata["metaData"]["00280002"]["Value"]
     ds_file.BitsStored = instance_metadata["metaData"]["00280101"]["Value"]
 
@@ -359,5 +402,23 @@ def create_dicom_dataset(
         "Value"
     ]
 
-    ds_file.PixelData = pydicom.encaps.encapsulate(frame_contents)
-    return ds_file
+    for key, value in instance_metadata["metaData"].items():
+        # convert the key to int
+        hex_tag = int(key, 16)
+        # Check the key from DicomDictionary
+        if (
+            hex_tag in DicomDictionary
+            and "Value" in value
+            and DicomDictionary[hex_tag][0] != "SQ"
+        ):
+            try:
+                if (
+                    DicomDictionary[hex_tag][0] == "PN"
+                    and "Alphabetic" in value["Value"][0]
+                ):
+                    value = value["Value"][0]["Alphabetic"]
+                elif "Value" in value:
+                    setattr(ds_file, DicomDictionary[hex_tag][-1], value["Value"])
+                setattr(ds_file, DicomDictionary[int(hex_tag)][-1], value["Value"])
+            except BaseException as error:
+                logger.error(f"Error in setting tag {hex_tag} {error}")

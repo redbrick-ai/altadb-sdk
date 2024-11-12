@@ -6,8 +6,6 @@ import asyncio
 from typing import Dict, List, Optional
 import aiohttp
 
-# from altadb.dataset import AltaDBDataset
-from altadb.common.constants import MAX_CONCURRENCY
 from altadb.common.context import AltaDBContext
 from altadb.utils.files import create_dicom_dataset, get_image_content
 
@@ -70,7 +68,7 @@ class Export:
         end_cursor: Optional[str] = None
         while first_iteration or (not first_iteration and end_cursor):
             ds_imports = self.context.dataset.get_data_store_imports(
-                org_id=self.org_id, data_store=dataset_name, first=5, cursor=end_cursor
+                org_id=self.org_id, data_store=dataset_name, cursor=end_cursor
             )
             await asyncio.gather(
                 *[
