@@ -69,6 +69,20 @@ FILE_TYPES = {
 ALL_FILE_TYPES = {"*": "*/*"}
 
 
+class DicomTagEnum(enum.Enum):
+    """Dicom Tag."""
+
+    ROWS = (0x00280010, "Rows")
+    COLUMNS = (0x00280011, "Columns")
+    SAMPLES_PER_PIXEL = (0x00280002, "SamplesPerPixel")
+    BITS_STORED = (0x00280101, "BitsStored")
+    PIXEL_SPACING = (0x00280030, "PixelSpacing")
+    SLICE_THICKNESS = (0x00180050, "SliceThickness")
+    BITS_ALLOCATED = (0x00280100, "BitsAllocated")
+    PIXEL_REPRESENTATION = (0x00280103, "PixelRepresentation")
+    PHOTOMETRIC_INTERPRETATION = (0x00280004, "PhotometricInterpretation")
+
+
 def get_file_type(file_path: str) -> Tuple[str, str]:
     """
     Return file type.
@@ -352,51 +366,6 @@ def create_dicom_dataset(
 
     ds_file.PixelData = pydicom.encaps.encapsulate(frame_contents)
     return ds_file
-
-
-ATOMIC_VRs = [
-    "AE",
-    "AS",
-    "AT",
-    "CS",
-    "DA",
-    "DS",
-    "DT",
-    "FL",
-    "FD",
-    "IS",
-    "LO",
-    "LT",
-    "OB",
-    "OD",
-    "OF",
-    "OW",
-    "PN",
-    "SH",
-    "SL",
-    "SQ",
-    "SS",
-    "ST",
-    "TM",
-    "UI",
-    "UL",
-    "UN",
-    "US",
-]
-
-
-class DicomTagEnum(enum.Enum):
-    """Dicom Tag."""
-
-    ROWS = (0x00280010, "Rows")
-    COLUMNS = (0x00280011, "Columns")
-    SAMPLES_PER_PIXEL = (0x00280002, "SamplesPerPixel")
-    BITS_STORED = (0x00280101, "BitsStored")
-    PIXEL_SPACING = (0x00280030, "PixelSpacing")
-    SLICE_THICKNESS = (0x00180050, "SliceThickness")
-    BITS_ALLOCATED = (0x00280100, "BitsAllocated")
-    PIXEL_REPRESENTATION = (0x00280103, "PixelRepresentation")
-    PHOTOMETRIC_INTERPRETATION = (0x00280004, "PhotometricInterpretation")
 
 
 def add_metadata_to_dataset(ds_file: pydicom.Dataset, instance_metadata: Dict) -> None:
