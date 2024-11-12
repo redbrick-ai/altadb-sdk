@@ -1,5 +1,6 @@
 """Handler for file upload/download."""
 
+import enum
 import os
 import gzip
 from typing import Any, Callable, Dict, List, Optional, Tuple, Set
@@ -384,41 +385,33 @@ ATOMIC_VRs = [
 ]
 
 
+class DicomTagEnum(enum.Enum):
+    """Dicom Tag."""
+
+    ROWS = (0x00280010, "Rows")
+    COLUMNS = (0x00280011, "Columns")
+    SAMPLES_PER_PIXEL = (0x00280002, "SamplesPerPixel")
+    BITS_STORED = (0x00280101, "BitsStored")
+    PIXEL_SPACING = (0x00280030, "PixelSpacing")
+    SLICE_THICKNESS = (0x00180050, "SliceThickness")
+    BITS_ALLOCATED = (0x00280100, "BitsAllocated")
+    PIXEL_REPRESENTATION = (0x00280103, "PixelRepresentation")
+    PHOTOMETRIC_INTERPRETATION = (0x00280004, "PhotometricInterpretation")
+
+
 def add_metadata_to_dataset(ds_file: pydicom.Dataset, instance_metadata: Dict) -> None:
     """Add metadata to dataset."""
-    ds_file.Rows = instance_metadata["metaData"]["00280010"]["Value"]
-    ds_file.Columns = instance_metadata["metaData"]["00280011"]["Value"]
-    ds_file.SamplesPerPixel = instance_metadata["metaData"]["00280002"]["Value"]
-    ds_file.BitsStored = instance_metadata["metaData"]["00280101"]["Value"]
+    for item in DicomTagEnum:
+        if item.value in instance_metadata["metaData"]:
+            setattr(
+                ds_file, item.value[-1], instance_metadata["metaData"][item.value[0]]
+            )
 
-    ds_file.PixelSpacing = [1, 1]  # in mm
-    sc = instance_metadata["metaData"].get("00180050")
-    if sc:
-        ds_file.SliceThickness = sc["Value"]
-
-    ds_file.BitsAllocated = instance_metadata["metaData"]["00280100"]["Value"]
-    ds_file.PixelRepresentation = instance_metadata["metaData"]["00280103"]["Value"]
-    ds_file.PhotometricInterpretation = instance_metadata["metaData"]["00280004"][
-        "Value"
-    ]
-
-    for key, value in instance_metadata["metaData"].items():
-        # convert the key to int
-        hex_tag = int(key, 16)
-        # Check the key from DicomDictionary
-        if (
-            hex_tag in DicomDictionary
-            and "Value" in value
-            and DicomDictionary[hex_tag][0] != "SQ"
-        ):
-            try:
-                if (
-                    DicomDictionary[hex_tag][0] == "PN"
-                    and "Alphabetic" in value["Value"][0]
-                ):
-                    value = value["Value"][0]["Alphabetic"]
-                elif "Value" in value:
-                    setattr(ds_file, DicomDictionary[hex_tag][-1], value["Value"])
-                setattr(ds_file, DicomDictionary[int(hex_tag)][-1], value["Value"])
-            except BaseException as error:
-                logger.error(f"Error in setting tag {hex_tag} {error}")
+    # Read the metadata as a dataset
+    with pydicom.Dataset.from_json(instance_metadata["metaData"]) as meta_as_ds:
+        # Add the metadata to the dataset using the keys
+        for key, _value in meta_as_ds.items():
+            if int(key.json_key, 16) in DicomDictionary:
+                setattr(
+                    ds_file, DicomDictionary[int(key.json_key, 16)][-1], _value.value
+                )
