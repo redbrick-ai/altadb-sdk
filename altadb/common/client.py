@@ -30,6 +30,7 @@ class AltaDBClient:
     def __init__(self, api_key: str, secret: str, url: str) -> None:
         """Construct RBClient."""
         self.config = config
+        self.base_url = url
         self.url = (url or DEFAULT_URL).lower().rstrip("/")
         if "amazonaws.com" not in self.url and "localhost" not in self.url:
             self.url = self.url.replace("https://", "", 1).replace("http://", "", 1)
@@ -165,3 +166,19 @@ class AltaDBClient:
         else:
             res = response_data
         return res
+
+    @tenacity.retry(
+        reraise=True,
+        stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_not_exception_type(PEERLESS_ERRORS),
+    )
+    async def get_file_content_async(
+        self, aio_session: aiohttp.ClientSession, url: str
+    ) -> bytes:
+        """Get file content using asyncio."""
+        async with aio_session.get(url, headers=self.headers) as response:
+            print("URL: ", url)
+            print(f"Status: {response.status}")
+            data = await response.content.read()
+            return data

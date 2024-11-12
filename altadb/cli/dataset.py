@@ -78,3 +78,7 @@ class CLIDataset:
                 console.print("[bold green]" + str(self._dataset))
 
         return self._dataset
+
+    def export(self, path: str) -> None:
+        """Export files from dataset."""
+        self.dataset.export_to_files(path)

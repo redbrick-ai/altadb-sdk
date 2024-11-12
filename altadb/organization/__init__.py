@@ -1,6 +1,6 @@
 """Organization class."""
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 from altadb.common.context import AltaDBContext
 
 
@@ -50,9 +50,10 @@ class AltaDBOrganization:
 
     def get_datasets(
         self,
-        org_id: str,
+        org_id: Optional[str] = None,
     ) -> list:
         """Retrieve all datasets in organization."""
+        org_id = org_id or self._org_id
         query = """
             query sdkDataStores($orgId: UUID!) {
                 dataStores(orgId: $orgId) {

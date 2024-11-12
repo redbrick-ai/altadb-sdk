@@ -6,6 +6,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple, Set
 
 import asyncio
 import aiohttp
+import pydicom
+import pydicom.uid
 from yarl import URL
 from tenacity import Retrying, RetryError
 from tenacity.retry import retry_if_not_exception_type
@@ -317,3 +319,46 @@ async def download_files(
 
     await asyncio.sleep(0.250)  # give time to close ssl connections
     return [(path if isinstance(path, str) else None) for path in paths]
+
+
+async def get_image_content(aiosession: aiohttp.ClientSession, image_url: str) -> bytes:
+    """Get image content."""
+    async with aiosession.get(image_url) as response:
+        return await response.content.read()
+
+
+def create_dicom_dataset(
+    instance_metadata: Dict, frame_contents: List[bytes], frame_count: int
+) -> pydicom.Dataset:
+    """Create a DICOM dataset."""
+    file_meta = pydicom.Dataset()
+    file_meta.MediaStorageSOPClassUID = pydicom.uid.generate_uid()
+    file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
+    file_meta.TransferSyntaxUID = pydicom.uid.HTJ2KLosslessRPCL
+
+    # Get the respective frames from the frame list
+
+    # Add image data
+    ds_file = pydicom.Dataset()
+    ds_file.file_meta = file_meta  # type: ignore
+
+    ds_file.Rows = instance_metadata["metaData"]["00280010"]["Value"]
+    ds_file.Columns = instance_metadata["metaData"]["00280011"]["Value"]
+    ds_file.NumberOfFrames = frame_count
+    ds_file.SamplesPerPixel = instance_metadata["metaData"]["00280002"]["Value"]
+    ds_file.BitsStored = instance_metadata["metaData"]["00280101"]["Value"]
+
+    ds_file.PixelSpacing = [1, 1]  # in mm
+    sc = instance_metadata["metaData"].get("00180050")
+    if sc:
+        ds_file.SliceThickness = sc["Value"]
+        print("SliceThickness: ", ds_file.SliceThickness)
+
+    ds_file.BitsAllocated = instance_metadata["metaData"]["00280100"]["Value"]
+    ds_file.PixelRepresentation = instance_metadata["metaData"]["00280103"]["Value"]
+    ds_file.PhotometricInterpretation = instance_metadata["metaData"]["00280004"][
+        "Value"
+    ]
+
+    ds_file.PixelData = pydicom.encaps.encapsulate(frame_contents)
+    return ds_file

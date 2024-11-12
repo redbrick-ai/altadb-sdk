@@ -1,6 +1,8 @@
 """Interface for interacting with your AltaDB Projects."""
 
+import asyncio
 from altadb.common.context import AltaDBContext
+from altadb.export.public import Export
 from altadb.upload.public import Upload
 
 
@@ -22,6 +24,7 @@ class AltaDBDataset:
         self._org_id = org_id
         self._dataset = dataset
         self.upload = Upload(self.context, self._org_id, self._dataset)
+        self.export = Export(self.context, self._org_id, self._dataset)
 
     @property
     def org_id(self) -> str:
@@ -44,3 +47,11 @@ class AltaDBDataset:
     def name(self) -> str:
         """Retrieve unique name of this project."""
         return self._dataset
+
+    def export_to_files(self, path: str) -> None:
+        """
+        Export the dataset to a local folder.
+
+        :param path: The folder to export the dataset to
+        """
+        asyncio.run(self.export.export_dataset_to_folder(self.name, path))
