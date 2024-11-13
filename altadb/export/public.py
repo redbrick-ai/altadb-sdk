@@ -9,6 +9,7 @@ import aiohttp
 from rich.console import Console
 
 from altadb.common.context import AltaDBContext
+from altadb.utils.async_utils import gather_with_concurrency
 from altadb.utils.files import create_dicom_dataset, get_image_content
 
 
@@ -27,12 +28,14 @@ class Export:
         res_json: Dict,
         source_dir: str,
         filename_preifx: str,
-    ) -> None:
+    ) -> List[str]:
         """Construct a DICOM image from metadata and URL."""
         image_frames_urls: Dict[str, str] = {}
         # Get the path of each imageFrame
         for image_frame in res_json.get("imageFrames") or []:
             image_frames_urls[image_frame["id"]] = image_frame["path"]
+
+        file_paths: List[str] = []
 
         # For each `instances` item, create a new file
         for instance_metadata in res_json["metaData"]["instances"]:
@@ -51,12 +54,15 @@ class Export:
             frame_dir = f"{source_dir}/{filename_preifx}"
             if not os.path.exists(frame_dir):
                 os.makedirs(frame_dir)
-
+            export_filename = f"{filename_preifx}/{filename_preifx}-{frame_ids[0]}.dcm"
             ds_file.save_as(
                 f"{frame_dir}/{filename_preifx}-{frame_ids[0]}.dcm",
                 write_like_original=False,
             )
+            file_paths.append(export_filename)
+
         await aiosession.close()
+        return file_paths
 
     async def export_dataset_to_folder(
         self,
@@ -76,23 +82,33 @@ class Export:
                 cursor=end_cursor,
             )
             console = Console()
-            await asyncio.gather(
-                *[
+            file_paths_list = await gather_with_concurrency(
+                5,
+                [
                     self.fetch_and_save_image_data(
                         item, dataset_root, console, ignore_existing
                     )
                     for item in ds_imports
-                ]
+                ],
             )
-            series.extend(ds_imports)
             first_iteration = False
+            for ds_import, file_paths in zip(ds_imports, file_paths_list):
+                series.append(
+                    {
+                        "dataset": dataset_name,
+                        "seriesId": ds_import["seriesId"],
+                        "importId": ds_import["importId"],
+                        "createdAt": ds_import["createdAt"],
+                        "createdBy": ds_import["createdBy"],
+                        "items": file_paths,
+                    }
+                )
             if series:
                 if not os.path.exists(dataset_root):
                     os.makedirs(dataset_root)
                 with open(
                     f"{dataset_root}/series.json", "w+", encoding="utf-8"
                 ) as series_file:
-                    format_series(series)
                     json.dump(series, series_file, indent=2)
 
     async def fetch_and_save_image_data(
@@ -101,7 +117,7 @@ class Export:
         source_dir: str,
         console: Console,
         ignore_existing: bool = False,
-    ) -> None:
+    ) -> List[str]:
         """Fetch and save image data."""
         # Check if the folder exists for the given seriesId
         if (not ignore_existing) and os.path.exists(f"{source_dir}/{item['seriesId']}"):
@@ -119,24 +135,9 @@ class Export:
             res_json = json.loads(response)
             if not os.path.exists(source_dir):
                 os.makedirs(source_dir)
-            await self.construct_images_from_metadata_and_url(
+            return await self.construct_images_from_metadata_and_url(
                 aiosession=aiosession,
                 res_json=res_json,
                 source_dir=source_dir,
                 filename_preifx=item["seriesId"],
             )
-
-
-def format_series(
-    series: List[Dict],
-) -> None:
-    """Format series."""
-    header_keys = [
-        "patientHeaders",
-        "studyHeaders",
-        "seriesHeaders",
-    ]
-    for item in series:
-        for key in header_keys:
-            if key in item:
-                item[key] = json.loads(item[key])
