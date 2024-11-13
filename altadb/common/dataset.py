@@ -1,7 +1,7 @@
 """Interface for getting basic information about a project."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 class DatasetRepoInterface(ABC):

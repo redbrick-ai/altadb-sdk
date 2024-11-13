@@ -1,6 +1,6 @@
 """Handlers to access APIs for getting projects."""
 
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 
 from altadb.common.client import AltaDBClient
 from altadb.common.dataset import DatasetRepoInterface
@@ -123,7 +123,7 @@ class DatasetRepo(DatasetRepoInterface):
         data_store: str,
         first: int = 20,
         cursor: Optional[str] = None,
-    ) -> List[Dict[str, str]]:
+    ) -> Tuple[List[Dict[str, str]], str]:
         """Get data store imports."""
         query_string = """
             query DataStoreImportSeries($orgId: UUID!, $dataStore: String!, $first: Int, $after: String) {
@@ -153,4 +153,7 @@ class DatasetRepo(DatasetRepoInterface):
             "after": cursor,
         }
         result = self.client.execute_query(query_string, query_variables)
-        return result["dataStoreImportSeries"]["entries"]
+        return (
+            result["dataStoreImportSeries"]["entries"],
+            result["dataStoreImportSeries"]["cursor"],
+        )
