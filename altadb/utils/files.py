@@ -336,32 +336,19 @@ def create_dicom_dataset(
     instance_metadata: Dict, frame_contents: List[bytes], frame_count: int
 ) -> pydicom.Dataset:
     """Create a DICOM dataset."""
-    file_meta = pydicom.Dataset()
-    file_meta.MediaStorageSOPClassUID = pydicom.uid.generate_uid()
-    file_meta.MediaStorageSOPInstanceUID = pydicom.uid.generate_uid()
-    file_meta.TransferSyntaxUID = pydicom.uid.HTJ2KLosslessRPCL
+    ds_file = pydicom.Dataset.from_json(instance_metadata["metaData"])
+    ds_file.TransferSyntaxUID = instance_metadata["frames"][0]["metaData"]["00020010"][
+        "Value"
+    ]
+    # Move the file meta information to the dataset file meta
+    if not hasattr(ds_file, "file_meta"):
+        ds_file.file_meta = pydicom.dataset.FileMetaDataset()
 
-    # Get the respective frames from the frame list
-
-    # Add image data
-    ds_file = pydicom.Dataset()
-    ds_file.NumberOfFrames = frame_count
-    ds_file.file_meta = file_meta  # type: ignore
-
-    add_metadata_to_dataset(ds_file, instance_metadata)
+    # Iterate through the dataset and copy Group 2 elements
+    for elem in ds_file:
+        if elem.tag.group == 2:  # Check if the element belongs to Group 2
+            ds_file.file_meta.add_new(elem.tag, elem.VR, elem.value)
+            del ds_file[elem.tag]  # Remove the element from the dataset
 
     ds_file.PixelData = pydicom.encaps.encapsulate(frame_contents)
     return ds_file
-
-
-def add_metadata_to_dataset(ds_file: pydicom.Dataset, instance_metadata: Dict) -> None:
-    """Add metadata to dataset."""
-
-    # Read the metadata as a dataset
-    with pydicom.Dataset.from_json(instance_metadata["metaData"]) as meta_as_ds:
-        # Add the metadata to the dataset using the keys
-        for key, _value in meta_as_ds.items():
-            if int(key.json_key, 16) in DicomDictionary:
-                setattr(
-                    ds_file, DicomDictionary[int(key.json_key, 16)][-1], _value.value
-                )
