@@ -3,11 +3,12 @@
 import asyncio
 import json
 import os
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 import aiohttp
 from rich.console import Console
 
+from altadb.common.constants import EXPORT_PAGE_SIZE, MAX_CONCURRENCY
 from altadb.common.context import AltaDBContext
 from altadb.utils.async_utils import gather_with_concurrency
 from altadb.utils.files import create_dicom_dataset, get_image_content
@@ -69,21 +70,40 @@ class Export:
         dataset_name: str,
         path: str,
         ignore_existing: bool = False,
+        max_concurrency: int = MAX_CONCURRENCY,
+        page_size: int = EXPORT_PAGE_SIZE,
     ) -> None:
         """Export dataset to folder."""
+        # pylint: disable=too-many-locals
         first_iteration: bool = True
         end_cursor: Optional[str] = None
         dataset_root = f"{path}/{dataset_name}"
-        series = []
+        console = Console()
+
+        console.print(f"[bold green][\u2713] Saving dataset {dataset_name} to {path}")
+
+        json_path = f"{dataset_root}/series.json"
+
+        if not ignore_existing:
+            series, ds_series_map = self._extract_series_map(json_path, console)
+        else:
+            series, ds_series_map = [], {}
+
         while first_iteration or (not first_iteration and end_cursor):
             ds_imports, end_cursor = self.context.dataset.get_data_store_imports(
                 org_id=self.org_id,
                 data_store=dataset_name,
+                first=page_size,
                 cursor=end_cursor,
             )
-            console = Console()
+            message = f"Fetching {len(ds_imports)} items in this page"
+            if end_cursor:
+                message += ", more pages to come..."
+            else:
+                message += ", last page of the dataset."
+            console.print(f"[bold green] [\u2713] {message}")
             file_paths_list = await gather_with_concurrency(
-                5,
+                max_concurrency,
                 [
                     self.fetch_and_save_image_data(
                         item, dataset_root, console, ignore_existing
@@ -93,6 +113,15 @@ class Export:
             )
             first_iteration = False
             for ds_import, file_paths in zip(ds_imports, file_paths_list):
+                if not file_paths:
+                    if (
+                        dataset_name in ds_series_map
+                        and ds_import["seriesId"] in ds_series_map[dataset_name]
+                    ):
+                        continue
+                    file_paths = (
+                        (ds_series_map.get(dataset_name) or {}).get("seriesId") or {}
+                    ).get("items") or []
                 series.append(
                     {
                         "dataset": dataset_name,
@@ -104,12 +133,31 @@ class Export:
                     }
                 )
             if series:
-                if not os.path.exists(dataset_root):
-                    os.makedirs(dataset_root)
-                with open(
-                    f"{dataset_root}/series.json", "w+", encoding="utf-8"
-                ) as series_file:
+                with open(json_path, "w+", encoding="utf-8") as series_file:
                     json.dump(series, series_file, indent=2)
+
+    def _extract_series_map(
+        self, json_path: str, console: Console
+    ) -> Tuple[List[Dict], Dict]:
+        """Extract series map."""
+        if os.path.exists(json_path):
+            with open(json_path, "r", encoding="utf-8") as series_file:
+                try:
+                    series = json.load(series_file)
+                    ds_series_map: Dict = {}
+                    for series_item in series:
+                        if series_item["dataset"] not in ds_series_map:
+                            ds_series_map[series_item["dataset"]] = {}
+                        ds_series_map[series_item["dataset"]][
+                            series_item["seriesId"]
+                        ] = series_item
+                    return series, ds_series_map
+                except Exception:  # pylint: disable=broad-exception-caught
+                    console.print(
+                        "[bold red] [!] Error reading series.json. It is either malformed or corrupted."
+                    )
+                    return [], {}
+        return [], {}
 
     async def fetch_and_save_image_data(
         self,
@@ -117,14 +165,15 @@ class Export:
         source_dir: str,
         console: Console,
         ignore_existing: bool = False,
-    ) -> List[str]:
+    ) -> Optional[List[str]]:
         """Fetch and save image data."""
         # Check if the folder exists for the given seriesId
         if (not ignore_existing) and os.path.exists(f"{source_dir}/{item['seriesId']}"):
             console.print(
-                f"[bold blue] [!] Skipping {item['seriesId']} as it already exists."
+                f"\t[bold yellow] [!] Skipping {item['seriesId']} as it already exists."
             )
-            return
+            return None
+        console.print(f"\t[blue] [\u2713] Fetching {item['seriesId']}")
         image_content_url = item["url"]
         image_content_url = image_content_url.replace("altadb://", "")
         image_content_url = f"{self.context.client.base_url}{image_content_url}"
