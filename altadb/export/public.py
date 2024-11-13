@@ -1,12 +1,12 @@
 """Decode DICOM images from metadata and URL."""
 
+import asyncio
 import json
 import os
-import asyncio
-from rich.console import Console
-
 from typing import Dict, List, Optional
+
 import aiohttp
+from rich.console import Console
 
 from altadb.common.context import AltaDBContext
 from altadb.utils.files import create_dicom_dataset, get_image_content
@@ -86,8 +86,14 @@ class Export:
             )
             series.extend(ds_imports)
             first_iteration = False
-            with open(f"{dataset_root}/series.json", "w") as series_file:
-                json.dump(series, series_file)
+            if series:
+                if not os.path.exists(dataset_root):
+                    os.makedirs(dataset_root)
+                with open(
+                    f"{dataset_root}/series.json", "w+", encoding="utf-8"
+                ) as series_file:
+                    format_series(series)
+                    json.dump(series, series_file, indent=2)
 
     async def fetch_and_save_image_data(
         self,
@@ -119,3 +125,18 @@ class Export:
                 source_dir=source_dir,
                 filename_preifx=item["seriesId"],
             )
+
+
+def format_series(
+    series: List[Dict],
+) -> None:
+    """Format series."""
+    header_keys = [
+        "patientHeaders",
+        "studyHeaders",
+        "seriesHeaders",
+    ]
+    for item in series:
+        for key in header_keys:
+            if key in item:
+                item[key] = json.loads(item[key])
