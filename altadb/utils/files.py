@@ -69,20 +69,6 @@ FILE_TYPES = {
 ALL_FILE_TYPES = {"*": "*/*"}
 
 
-class DicomTagEnum(enum.Enum):
-    """Dicom Tag."""
-
-    ROWS = (0x00280010, "Rows")
-    COLUMNS = (0x00280011, "Columns")
-    SAMPLES_PER_PIXEL = (0x00280002, "SamplesPerPixel")
-    BITS_STORED = (0x00280101, "BitsStored")
-    PIXEL_SPACING = (0x00280030, "PixelSpacing")
-    SLICE_THICKNESS = (0x00180050, "SliceThickness")
-    BITS_ALLOCATED = (0x00280100, "BitsAllocated")
-    PIXEL_REPRESENTATION = (0x00280103, "PixelRepresentation")
-    PHOTOMETRIC_INTERPRETATION = (0x00280004, "PhotometricInterpretation")
-
-
 def get_file_type(file_path: str) -> Tuple[str, str]:
     """
     Return file type.
@@ -370,11 +356,6 @@ def create_dicom_dataset(
 
 def add_metadata_to_dataset(ds_file: pydicom.Dataset, instance_metadata: Dict) -> None:
     """Add metadata to dataset."""
-    for item in DicomTagEnum:
-        if item.value in instance_metadata["metaData"]:
-            setattr(
-                ds_file, item.value[-1], instance_metadata["metaData"][item.value[0]]
-            )
 
     # Read the metadata as a dataset
     with pydicom.Dataset.from_json(instance_metadata["metaData"]) as meta_as_ds:
