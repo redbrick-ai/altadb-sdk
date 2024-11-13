@@ -45,9 +45,7 @@ class Export:
                 ]
             )
             # Add metadata
-            ds_file = create_dicom_dataset(
-                instance_metadata, frame_contents, len(frame_ids)
-            )
+            ds_file = create_dicom_dataset(instance_metadata, frame_contents)
             frame_dir = f"{source_dir}/{filename_preifx}"
             if not os.path.exists(frame_dir):
                 os.makedirs(frame_dir)

@@ -1,6 +1,5 @@
 """Handler for file upload/download."""
 
-import enum
 import os
 import gzip
 from typing import Any, Callable, Dict, List, Optional, Tuple, Set
@@ -11,7 +10,6 @@ import aiohttp
 import pydicom
 import pydicom.tag
 import pydicom.uid
-from pydicom.datadict import DicomDictionary
 
 from yarl import URL
 from tenacity import Retrying, RetryError
@@ -333,7 +331,7 @@ async def get_image_content(aiosession: aiohttp.ClientSession, image_url: str) -
 
 
 def create_dicom_dataset(
-    instance_metadata: Dict, frame_contents: List[bytes], frame_count: int
+    instance_metadata: Dict, frame_contents: List[bytes]
 ) -> pydicom.Dataset:
     """Create a DICOM dataset."""
     ds_file = pydicom.Dataset.from_json(instance_metadata["metaData"])
