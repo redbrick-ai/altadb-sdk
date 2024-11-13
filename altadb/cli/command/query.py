@@ -1,7 +1,7 @@
 """CLI query command controller."""
 
 from argparse import ArgumentParser, Namespace
-from typing import cast
+from typing import Dict, List, Optional, cast
 
 from rich.console import Console
 from rich.table import Table
@@ -44,11 +44,22 @@ class CLIQueryController(CLIQueryInterface):
             org_id=cli_dataset.creds.org_id, dataset_name=dataset
         ):
             raise ValueError("Dataset does not exist.")
-        status = self.cli_dataset.context.dataset.get_data_store_imports(
-            org_id=cli_dataset.creds.org_id,
-            data_store=dataset,
-            first=number,
-        )
+        first_iteration: bool = True
+        end_cursor: Optional[str] = None
+        status: List[Dict[str, str]] = []
+        while first_iteration or end_cursor:
+            entries, end_cursor = (  # pylint: disable=unused-variable
+                self.cli_dataset.context.dataset.get_data_store_imports(
+                    org_id=cli_dataset.creds.org_id,
+                    data_store=dataset,
+                    first=number,
+                    cursor=end_cursor,
+                )
+            )
+            status.extend(entries)
+            first_iteration = False
+            if len(status) == 0 or len(status) >= number or not end_cursor:
+                break
         console = Console()
         table = Table(box=ROUNDED)
         # Display the dataset keys in left and values in right
