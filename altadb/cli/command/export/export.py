@@ -1,6 +1,7 @@
 """CLI export command."""
 
 from argparse import ArgumentParser, Namespace
+from rich.console import Console
 
 from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIExportInterface
@@ -21,7 +22,7 @@ class CLIExportController(CLIExportInterface):
         )
         parser.add_argument(
             "path",
-            help="The folder containing files to upload to the project",
+            help="The folder where you want to export the dataset",
         )
         parser.add_argument(
             "-c",
@@ -35,6 +36,13 @@ class CLIExportController(CLIExportInterface):
             action="store_true",
             help="Clear the cache before exporting",
         )
+        parser.add_argument(
+            "-p",
+            "--page-size",
+            type=int,
+            default=50,
+            help="Page size for the export (Default: 50)",
+        )
 
     def handler(self, args: Namespace) -> None:
         """Handle upload command."""
@@ -46,4 +54,14 @@ class CLIExportController(CLIExportInterface):
         """Handle empty sub command."""
         path = self.args.path
         ignore_existing = self.args.clear_cache
-        self.cli_dataset.export(path, ignore_existing)
+        page_size = self.args.page_size
+        max_concurrency = self.args.concurrency
+        if page_size < max_concurrency:
+            console = Console()
+            console.print(
+                "[bold yellow][WARNING] Page size is less than concurrency value. Concurrency value set to page size.",
+            )
+            max_concurrency = page_size
+        self.cli_dataset.export(
+            path, ignore_existing, max_concurrency=max_concurrency, page_size=page_size
+        )

@@ -1,6 +1,7 @@
 """Interface for interacting with your AltaDB Projects."""
 
 import asyncio
+from altadb.common.constants import EXPORT_PAGE_SIZE, MAX_CONCURRENCY
 from altadb.common.context import AltaDBContext
 from altadb.export.public import Export
 from altadb.upload.public import Upload
@@ -52,6 +53,8 @@ class AltaDBDataset:
         self,
         path: str,
         ignore_existing: bool = False,
+        max_concurrency: int = MAX_CONCURRENCY,
+        page_size: int = EXPORT_PAGE_SIZE,
     ) -> None:
         """
         Export the dataset to a local folder.
@@ -59,5 +62,11 @@ class AltaDBDataset:
         :param path: The folder to export the dataset to
         """
         asyncio.run(
-            self.export.export_dataset_to_folder(self.name, path, ignore_existing)
+            self.export.export_dataset_to_folder(
+                self.name,
+                path,
+                ignore_existing,
+                max_concurrency=max_concurrency,
+                page_size=page_size,
+            )
         )

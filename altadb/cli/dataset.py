@@ -6,6 +6,7 @@ from typing import Optional
 from rich.console import Console
 
 from altadb import _populate_context
+from altadb.common.constants import EXPORT_PAGE_SIZE, MAX_CONCURRENCY
 from altadb.config import config
 from altadb.common.context import AltaDBContext
 from altadb.organization import AltaDBOrganization
@@ -83,6 +84,10 @@ class CLIDataset:
         self,
         path: str,
         ignore_existing: bool = False,
+        max_concurrency: int = MAX_CONCURRENCY,
+        page_size: int = EXPORT_PAGE_SIZE,
     ) -> None:
         """Export files from dataset."""
-        self.dataset.export_to_files(path, ignore_existing)
+        self.dataset.export_to_files(
+            path, ignore_existing, max_concurrency=max_concurrency, page_size=page_size
+        )
