@@ -89,6 +89,9 @@ class Export:
         else:
             series, ds_series_map = [], {}
 
+        if not any([series, ds_series_map]):
+            ignore_existing = True
+
         while first_iteration or (not first_iteration and end_cursor):
             ds_imports, end_cursor = self.context.dataset.get_data_store_imports(
                 org_id=self.org_id,
