@@ -3,6 +3,8 @@
 import json
 import os
 import asyncio
+from rich.console import Console
+
 from typing import Dict, List, Optional
 import aiohttp
 
@@ -60,31 +62,48 @@ class Export:
         self,
         dataset_name: str,
         path: str,
+        ignore_existing: bool = False,
     ) -> None:
         """Export dataset to folder."""
         first_iteration: bool = True
         end_cursor: Optional[str] = None
+        dataset_root = f"{path}/{dataset_name}"
+        series = []
         while first_iteration or (not first_iteration and end_cursor):
-            ds_imports = self.context.dataset.get_data_store_imports(
-                org_id=self.org_id, data_store=dataset_name, cursor=end_cursor
+            ds_imports, end_cursor = self.context.dataset.get_data_store_imports(
+                org_id=self.org_id,
+                data_store=dataset_name,
+                cursor=end_cursor,
             )
+            console = Console()
             await asyncio.gather(
                 *[
                     self.fetch_and_save_image_data(
-                        index, item, f"{path}/{dataset_name}"
+                        item, dataset_root, console, ignore_existing
                     )
-                    for index, item in enumerate(ds_imports)
+                    for item in ds_imports
                 ]
             )
+            series.extend(ds_imports)
             first_iteration = False
-            end_cursor = ds_imports[-1].get("cursor")
+            with open(f"{dataset_root}/series.json", "w") as series_file:
+                json.dump(series, series_file)
 
     async def fetch_and_save_image_data(
-        self, index: int, item: Dict, source_dir: str
+        self,
+        item: Dict,
+        source_dir: str,
+        console: Console,
+        ignore_existing: bool = False,
     ) -> None:
         """Fetch and save image data."""
+        # Check if the folder exists for the given seriesId
+        if (not ignore_existing) and os.path.exists(f"{source_dir}/{item['seriesId']}"):
+            console.print(
+                f"[bold blue] [!] Skipping {item['seriesId']} as it already exists."
+            )
+            return
         image_content_url = item["url"]
-        series_id = item["seriesId"]
         image_content_url = image_content_url.replace("altadb://", "")
         image_content_url = f"{self.context.client.base_url}{image_content_url}"
         async with aiohttp.ClientSession() as aiosession:
@@ -94,14 +113,9 @@ class Export:
             res_json = json.loads(response)
             if not os.path.exists(source_dir):
                 os.makedirs(source_dir)
-            with open(
-                f"{source_dir}/item-{index + 1}.json", "w+", encoding="utf-8"
-            ) as file:
-                json.dump(res_json, file, indent=2)
-            filename = series_id
             await self.construct_images_from_metadata_and_url(
                 aiosession=aiosession,
                 res_json=res_json,
                 source_dir=source_dir,
-                filename_preifx=filename,
+                filename_preifx=item["seriesId"],
             )

@@ -79,6 +79,10 @@ class CLIDataset:
 
         return self._dataset
 
-    def export(self, path: str) -> None:
+    def export(
+        self,
+        path: str,
+        ignore_existing: bool = False,
+    ) -> None:
         """Export files from dataset."""
-        self.dataset.export_to_files(path)
+        self.dataset.export_to_files(path, ignore_existing)

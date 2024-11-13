@@ -13,6 +13,7 @@ from altadb.cli.command import (
     CLIListController,
     CLICreateController,
     CLIExportController,
+    CLIQueryController,
 )
 from altadb.cli.cli_base import CLIInterface
 from altadb.utils.logging import logger
@@ -58,6 +59,13 @@ class CLIController(CLIInterface):
                 description="Export files from a dataset",
             )
         )
+        self.query = CLIQueryController(
+            command.add_parser(
+                self.QUERY,
+                help="Query files from a dataset",
+                description="Query files from a dataset",
+            )
+        )
 
     def handle_command(self, args: argparse.Namespace) -> None:
         """CLI command main handler."""
@@ -67,8 +75,8 @@ class CLIController(CLIInterface):
             self.upload.handler(args)
         elif args.command == self.LIST:
             self.list.handler(args)
-        # elif args.command == self.QUERY:
-        #     self.query.handler(args)
+        elif args.command == self.QUERY:
+            self.query.handler(args)
         elif args.command == self.CREATE:
             self.create.handler(args)
         elif args.command == self.EXPORT:

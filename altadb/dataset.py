@@ -48,10 +48,16 @@ class AltaDBDataset:
         """Retrieve unique name of this project."""
         return self._dataset
 
-    def export_to_files(self, path: str) -> None:
+    def export_to_files(
+        self,
+        path: str,
+        ignore_existing: bool = False,
+    ) -> None:
         """
         Export the dataset to a local folder.
 
         :param path: The folder to export the dataset to
         """
-        asyncio.run(self.export.export_dataset_to_folder(self.name, path))
+        asyncio.run(
+            self.export.export_dataset_to_folder(self.name, path, ignore_existing)
+        )

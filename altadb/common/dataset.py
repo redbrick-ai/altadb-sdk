@@ -38,5 +38,5 @@ class DatasetRepoInterface(ABC):
         data_store: str,
         first: int = 20,
         cursor: Optional[str] = None,
-    ) -> List[Dict[str, str]]:
+    ) -> Tuple[List[Dict[str, str]], str]:
         """Get data store imports."""

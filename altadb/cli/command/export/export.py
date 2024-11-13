@@ -30,6 +30,11 @@ class CLIExportController(CLIExportInterface):
             default=MAX_UPLOAD_CONCURRENCY,
             help=f"Concurrency value (Default: {MAX_UPLOAD_CONCURRENCY})",
         )
+        parser.add_argument(
+            "--clear-cache",
+            action="store_true",
+            help="Clear the cache before exporting",
+        )
 
     def handler(self, args: Namespace) -> None:
         """Handle upload command."""
@@ -40,4 +45,5 @@ class CLIExportController(CLIExportInterface):
     def handle_export(self) -> None:
         """Handle empty sub command."""
         path = self.args.path
-        self.cli_dataset.export(path)
+        ignore_existing = self.args.clear_cache
+        self.cli_dataset.export(path, ignore_existing)
