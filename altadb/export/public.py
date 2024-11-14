@@ -12,7 +12,7 @@ from rich.console import Console
 from altadb.common.constants import EXPORT_PAGE_SIZE, MAX_CONCURRENCY
 from altadb.common.context import AltaDBContext
 from altadb.utils.async_utils import gather_with_concurrency
-from altadb.utils.files import create_dicom_dataset, get_image_content
+from altadb.utils.files import save_dicom_dataset
 from altadb.utils.pagination import PaginationIterator
 
 
@@ -33,37 +33,36 @@ class Export:
         filename_preifx: str,
     ) -> List[str]:
         """Construct a DICOM image from metadata and URL."""
-        image_frames_urls: Dict[str, str] = {}
         # Get the path of each imageFrame
-        for image_frame in res_json.get("imageFrames") or []:
-            image_frames_urls[image_frame["id"]] = image_frame["path"]
+        image_frames_urls_map = {
+            image_frame["id"]: image_frame["path"]
+            for image_frame in res_json.get("imageFrames", [])
+        }
 
         file_paths: List[str] = []
 
         # For each `instances` item, create a new file
-        for instance_metadata in res_json["metaData"]["instances"]:
-            # Collect all the frame ids from `frames`
-            frame_ids: List[str] = [
-                frame.get("id") for frame in instance_metadata.get("frames") or []
+        for instance in res_json["metaData"]["instances"]:
+            # Get the image frame URLs
+            frame_ids = [frame["id"] for frame in instance["frames"]]
+            image_frames_urls = [
+                image_frames_urls_map[frame_id] for frame_id in frame_ids
             ]
-            frame_contents = await asyncio.gather(
-                *[
-                    get_image_content(aiosession, image_url=image_frames_urls[frame_id])
-                    for frame_id in frame_ids
-                ]
+            frame_dir = os.path.join(source_dir, filename_preifx)
+            os.makedirs(frame_dir, exist_ok=True)
+            export_filename = os.path.join(
+                filename_preifx, f"{filename_preifx}-{frame_ids[0]}.dcm"
             )
-            # Add metadata
-            ds_file = create_dicom_dataset(instance_metadata, frame_contents)
-            frame_dir = f"{source_dir}/{filename_preifx}"
-            if not os.path.exists(frame_dir):
-                os.makedirs(frame_dir)
-            export_filename = f"{filename_preifx}/{filename_preifx}-{frame_ids[0]}.dcm"
-            ds_file.save_as(
-                f"{frame_dir}/{filename_preifx}-{frame_ids[0]}.dcm",
-                write_like_original=False,
+            await save_dicom_dataset(
+                instance["metaData"],
+                instance["frames"],
+                image_frames_urls,
+                os.path.join(source_dir, export_filename),
+                aiosession,
             )
             file_paths.append(export_filename)
 
+        await asyncio.sleep(0.250)  # give time to close ssl connections
         await aiosession.close()
         return file_paths
 

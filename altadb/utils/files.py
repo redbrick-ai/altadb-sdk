@@ -324,18 +324,32 @@ async def download_files(
     return [(path if isinstance(path, str) else None) for path in paths]
 
 
-async def get_image_content(aiosession: aiohttp.ClientSession, image_url: str) -> bytes:
-    """Get image content."""
-    async with aiosession.get(image_url) as response:
-        return await response.content.read()
+async def save_dicom_dataset(
+    instance_metadata: Dict,
+    instance_frames_metadata: List[Dict],
+    presigned_image_urls: List[str],
+    destination_file: str,
+    aiosession: aiohttp.ClientSession,
+) -> None:
+    """Create and save a DICOM dataset using metadata and image frame URLs."""
 
+    async def get_image_content(
+        aiosession: aiohttp.ClientSession, image_url: str
+    ) -> bytes:
+        """Get image content."""
+        async with aiosession.get(image_url) as response:
+            return await response.content.read()
 
-def create_dicom_dataset(
-    instance_metadata: Dict, frame_contents: List[bytes]
-) -> pydicom.Dataset:
-    """Create a DICOM dataset."""
-    ds_file = pydicom.Dataset.from_json(instance_metadata["metaData"])
-    ds_file.TransferSyntaxUID = instance_metadata["frames"][0]["metaData"]["00020010"][
+    frame_contents = await gather_with_concurrency(
+        MAX_FILE_BATCH_SIZE,
+        [
+            get_image_content(aiosession, image_url=image_frame_url)
+            for image_frame_url in presigned_image_urls
+        ],
+    )
+
+    ds_file = pydicom.Dataset.from_json(instance_metadata)
+    ds_file.TransferSyntaxUID = instance_frames_metadata[0]["metaData"]["00020010"][
         "Value"
     ]
     # Move the file meta information to the dataset file meta
@@ -349,4 +363,6 @@ def create_dicom_dataset(
             del ds_file[elem.tag]  # Remove the element from the dataset
 
     ds_file.PixelData = pydicom.encaps.encapsulate(frame_contents)
-    return ds_file
+
+    ds_file.save_as(destination_file, write_like_original=False)
+    logger.debug(f"Saved DICOM dataset to {destination_file}")
