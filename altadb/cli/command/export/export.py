@@ -5,7 +5,7 @@ from rich.console import Console
 
 from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIExportInterface
-from altadb.common.constants import MAX_UPLOAD_CONCURRENCY
+from altadb.common.constants import MAX_CONCURRENCY
 
 
 class CLIExportController(CLIExportInterface):
@@ -28,13 +28,13 @@ class CLIExportController(CLIExportInterface):
             "-c",
             "--concurrency",
             type=int,
-            default=MAX_UPLOAD_CONCURRENCY,
-            help=f"Concurrency value (Default: {MAX_UPLOAD_CONCURRENCY})",
+            default=MAX_CONCURRENCY,
+            help=f"Concurrency value (Default: {MAX_CONCURRENCY})",
         )
         parser.add_argument(
             "--clear-cache",
             action="store_true",
-            help="Clear the cache before exporting",
+            help="Do not download a series if the folder for the series exists.",
         )
         parser.add_argument(
             "-p",
@@ -53,7 +53,7 @@ class CLIExportController(CLIExportInterface):
     def handle_export(self) -> None:
         """Handle empty sub command."""
         path = self.args.path
-        ignore_existing = self.args.clear_cache
+        ignore_cache = self.args.clear_cache
         page_size = self.args.page_size
         max_concurrency = self.args.concurrency
         if page_size < max_concurrency:
@@ -62,6 +62,4 @@ class CLIExportController(CLIExportInterface):
                 "[bold yellow][WARNING] Page size is less than concurrency value. Concurrency value set to page size.",
             )
             max_concurrency = page_size
-        self.cli_dataset.export(
-            path, ignore_existing, max_concurrency=max_concurrency, page_size=page_size
-        )
+        self.cli_dataset.export(path, ignore_cache, max_concurrency, page_size)

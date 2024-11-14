@@ -1,9 +1,10 @@
 """Decode DICOM images from metadata and URL."""
 
 import asyncio
+from functools import partial
 import json
 import os
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, Iterator, List, Optional, Tuple
 
 import aiohttp
 from rich.console import Console
@@ -12,6 +13,7 @@ from altadb.common.constants import EXPORT_PAGE_SIZE, MAX_CONCURRENCY
 from altadb.common.context import AltaDBContext
 from altadb.utils.async_utils import gather_with_concurrency
 from altadb.utils.files import create_dicom_dataset, get_image_content
+from altadb.utils.pagination import PaginationIterator
 
 
 class Export:
@@ -65,18 +67,32 @@ class Export:
         await aiosession.close()
         return file_paths
 
+    def get_data_store_series(
+        self, *, dataset_name: str, page_size: int
+    ) -> Iterator[Dict[str, str]]:
+        """Get data store series."""
+        my_iter = PaginationIterator(
+            partial(
+                self.context.dataset.get_data_store_imports,
+                self.org_id,
+                dataset_name,
+            ),
+            limit=page_size,
+        )
+
+        for ds_import in my_iter:
+            yield ds_import
+
     async def export_dataset_to_folder(
         self,
         dataset_name: str,
         path: str,
-        ignore_existing: bool = False,
+        ignore_cache: bool = False,
         max_concurrency: int = MAX_CONCURRENCY,
         page_size: int = EXPORT_PAGE_SIZE,
     ) -> None:
         """Export dataset to folder."""
         # pylint: disable=too-many-locals
-        first_iteration: bool = True
-        end_cursor: Optional[str] = None
         dataset_root = f"{path}/{dataset_name}"
         console = Console()
 
@@ -84,60 +100,88 @@ class Export:
 
         json_path = f"{dataset_root}/series.json"
 
-        if not ignore_existing:
+        if not ignore_cache:
             series, ds_series_map = self._extract_series_map(json_path, console)
         else:
             series, ds_series_map = [], {}
 
         if not any([series, ds_series_map]):
-            ignore_existing = True
-
-        while first_iteration or (not first_iteration and end_cursor):
-            ds_imports, end_cursor = self.context.dataset.get_data_store_imports(
-                org_id=self.org_id,
-                data_store=dataset_name,
-                first=page_size,
-                cursor=end_cursor,
-            )
-            message = f"Fetching {len(ds_imports)} items in this page"
-            if end_cursor:
-                message += ", more pages to come..."
-            else:
-                message += ", last page of the dataset."
-            console.print(f"[bold green] [\u2713] {message}")
-            file_paths_list = await gather_with_concurrency(
-                max_concurrency,
-                [
-                    self.fetch_and_save_image_data(
-                        item, dataset_root, console, ignore_existing
-                    )
-                    for item in ds_imports
-                ],
-            )
-            first_iteration = False
-            for ds_import, file_paths in zip(ds_imports, file_paths_list):
-                if not file_paths:
-                    if (
-                        dataset_name in ds_series_map
-                        and ds_import["seriesId"] in ds_series_map[dataset_name]
-                    ):
-                        continue
-                    file_paths = (
-                        (ds_series_map.get(dataset_name) or {}).get("seriesId") or {}
-                    ).get("items") or []
-                series.append(
-                    {
-                        "dataset": dataset_name,
-                        "seriesId": ds_import["seriesId"],
-                        "importId": ds_import["importId"],
-                        "createdAt": ds_import["createdAt"],
-                        "createdBy": ds_import["createdBy"],
-                        "items": file_paths,
-                    }
+            ignore_cache = True
+        ds_imports: List[Dict[str, str]] = []
+        for ds_import in self.get_data_store_series(
+            dataset_name=dataset_name, page_size=page_size
+        ):
+            ds_imports.append(ds_import)
+            if len(ds_imports) >= max_concurrency:
+                await self.store_data(
+                    dataset_name,
+                    ignore_cache,
+                    max_concurrency,
+                    dataset_root,
+                    console,
+                    json_path,
+                    series,
+                    ds_series_map,
+                    ds_imports,
                 )
-            if series:
-                with open(json_path, "w+", encoding="utf-8") as series_file:
-                    json.dump(series, series_file, indent=2)
+                ds_imports = []
+
+        if ds_imports:
+            await self.store_data(
+                dataset_name,
+                ignore_cache,
+                max_concurrency,
+                dataset_root,
+                console,
+                json_path,
+                series,
+                ds_series_map,
+                ds_imports,
+            )
+
+    async def store_data(
+        self,
+        dataset_name,
+        cache,
+        max_concurrency,
+        dataset_root,
+        console,
+        json_path,
+        series,
+        ds_series_map,
+        ds_imports,
+    ):
+        """Store data for the given series imports."""
+        file_paths_list = await gather_with_concurrency(
+            max_concurrency,
+            [
+                self.fetch_and_save_image_data(item, dataset_root, console, cache)
+                for item in ds_imports
+            ],
+        )
+        for ds_import, file_paths in zip(ds_imports, file_paths_list):
+            if not file_paths:
+                if (
+                    dataset_name in ds_series_map
+                    and ds_import["seriesId"] in ds_series_map[dataset_name]
+                ):
+                    continue
+                file_paths = (
+                    (ds_series_map.get(dataset_name) or {}).get("seriesId") or {}
+                ).get("items") or []
+            series.append(
+                {
+                    "dataset": dataset_name,
+                    "seriesId": ds_import["seriesId"],
+                    "importId": ds_import["importId"],
+                    "createdAt": ds_import["createdAt"],
+                    "createdBy": ds_import["createdBy"],
+                    "items": file_paths,
+                }
+            )
+        if series:
+            with open(json_path, "w+", encoding="utf-8") as series_file:
+                json.dump(series, series_file, indent=2)
 
     def _extract_series_map(
         self, json_path: str, console: Console

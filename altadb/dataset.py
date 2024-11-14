@@ -52,7 +52,7 @@ class AltaDBDataset:
     def export_to_files(
         self,
         path: str,
-        ignore_existing: bool = False,
+        ignore_cache: bool = False,
         max_concurrency: int = MAX_CONCURRENCY,
         page_size: int = EXPORT_PAGE_SIZE,
     ) -> None:
@@ -65,7 +65,7 @@ class AltaDBDataset:
             self.export.export_dataset_to_folder(
                 self.name,
                 path,
-                ignore_existing,
+                ignore_cache,
                 max_concurrency=max_concurrency,
                 page_size=page_size,
             )

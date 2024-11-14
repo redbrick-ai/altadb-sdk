@@ -29,9 +29,7 @@ class CLIListController(CLIListInterface):
         """Handle list command."""
         self.args = args
         cli_dataset = CLIDataset()
-        datasets: List[Dict] = cli_dataset.org.get_datasets(
-            org_id=cli_dataset.creds.org_id
-        )
+        datasets: List[Dict] = cli_dataset.org.get_datasets()
         console = Console()
         table = Table(
             title="Datasets",
