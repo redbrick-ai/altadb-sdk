@@ -95,14 +95,6 @@ class CLIConfigController(CLIConfigInterface):
         )
         verify_sub_command.add_argument("profile", nargs="?", help="Profile name")
 
-        # export_sub_command
-        export_sub_command = sub_command.add_parser(
-            self.EXPORT,
-            help="Export dataset",
-            description="Export dataset",
-        )
-        export_sub_command.add_argument("dataset", nargs="?", help="Dataset name")
-
     def handler(self, args: Namespace) -> None:
         """Handle config command."""
         self.args = args
