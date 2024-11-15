@@ -117,7 +117,7 @@ class DatasetRepo(DatasetRepoInterface):
         current_user: Dict = result["me"]
         return current_user
 
-    def get_data_store_imports(
+    def get_data_store_import_series(
         self,
         org_id: str,
         data_store: str,

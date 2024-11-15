@@ -72,15 +72,15 @@ class Export:
         """Get data store series."""
         my_iter = PaginationIterator(
             partial(
-                self.context.dataset.get_data_store_imports,
+                self.context.dataset.get_data_store_import_series,
                 self.org_id,
                 dataset_name,
             ),
             limit=page_size,
         )
 
-        for ds_import in my_iter:
-            yield ds_import
+        for ds_import_series in my_iter:
+            yield ds_import_series
 
     async def export_dataset_to_folder(
         self,
@@ -106,12 +106,12 @@ class Export:
 
         if not any([series, ds_series_map]):
             ignore_cache = True
-        ds_imports: List[Dict[str, str]] = []
-        for ds_import in self.get_data_store_series(
+        ds_import_series_list: List[Dict[str, str]] = []
+        for ds_import_series in self.get_data_store_series(
             dataset_name=dataset_name, page_size=page_size
         ):
-            ds_imports.append(ds_import)
-            if len(ds_imports) >= max_concurrency:
+            ds_import_series_list.append(ds_import_series)
+            if len(ds_import_series_list) >= max_concurrency:
                 await self.store_data(
                     dataset_name,
                     ignore_cache,
@@ -121,11 +121,11 @@ class Export:
                     json_path,
                     series,
                     ds_series_map,
-                    ds_imports,
+                    ds_import_series_list,
                 )
-                ds_imports = []
+                ds_import_series_list = []
 
-        if ds_imports:
+        if ds_import_series_list:
             await self.store_data(
                 dataset_name,
                 ignore_cache,
@@ -135,7 +135,7 @@ class Export:
                 json_path,
                 series,
                 ds_series_map,
-                ds_imports,
+                ds_import_series_list,
             )
 
     async def store_data(

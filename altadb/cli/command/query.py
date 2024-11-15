@@ -44,13 +44,13 @@ class CLIQueryController(CLIQueryInterface):
             org_id=cli_dataset.creds.org_id, dataset_name=dataset
         ):
             raise ValueError("Dataset does not exist.")
-        entries, end_cursor = self.cli_dataset.context.dataset.get_data_store_imports(
-            org_id=cli_dataset.creds.org_id,
-            data_store=dataset,
-            first=number,
+        entries, end_cursor = (
+            self.cli_dataset.context.dataset.get_data_store_import_series(
+                org_id=cli_dataset.creds.org_id,
+                data_store=dataset,
+                first=number,
+            )
         )
-        print("ENd cursor", end_cursor)
-        status = entries
         console = Console()
         table = Table(box=ROUNDED)
         # Display the dataset keys in left and values in right
@@ -60,8 +60,8 @@ class CLIQueryController(CLIQueryInterface):
         cipher_items = [
             "createdBy",
         ]
-        if status:
-            keys = list(status[0].keys())
+        if entries:
+            keys = list(entries[0].keys())
             keys = list(set(keys) - set(mask_items))
             keys = [
                 "seriesId",
@@ -73,7 +73,7 @@ class CLIQueryController(CLIQueryInterface):
             table.add_column("Index", style="bold")
             for key in keys:
                 table.add_column(key, style="bold")
-            for index, item in enumerate(status):
+            for index, item in enumerate(entries):
                 row = []
                 for key in keys:
                     value = item[key]
@@ -89,5 +89,5 @@ class CLIQueryController(CLIQueryInterface):
             if config.log_info:
                 console.print(table)
                 console.print("Dataset queried successfully.")
-                if len(status) < number or not end_cursor:
+                if len(entries) < number or not end_cursor:
                     console.print("[bold yellow]Dataset has no more entries.")
