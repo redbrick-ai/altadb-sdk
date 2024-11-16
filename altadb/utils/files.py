@@ -1,5 +1,6 @@
 """Handler for file upload/download."""
 
+import json
 import os
 import gzip
 from typing import Any, Callable, Dict, List, Optional, Tuple, Set
@@ -366,3 +367,118 @@ async def save_dicom_dataset(
 
     ds_file.save_as(destination_file, write_like_original=False)
     logger.debug(f"Saved DICOM dataset to {destination_file}")
+
+
+async def save_dicom_dataset2(
+    altadb_meta_content_url: str,
+    base_dir: str,
+    base_url: str = "https://app.altadb.com",
+    headers: Optional[Dict[str, str]] = None,
+) -> List[str]:
+    """Save DICOM files using AltaDB URLs.
+    Given an AltaDB URL containing the metadata and image frames.
+
+    Save the DICOM files to the destination directory.
+    One DICOM file can contain multiple image frames.
+
+    Args
+    ------------
+    altadb_meta_content_url: str
+        AltaDB URL containing the metadata and image frames.
+        This URL can be signed or unsigned.
+    base_dir: str
+        Destination directory to save the DICOM files.
+    base_url: str
+        Base URL for the AltaDB API.
+    headers: Optional[Dict[str, str]]
+        Headers to be used for the HTTP requests.
+        If the altaDB_meta_content_url is unsigned, the headers should contain the authorization token.
+    """
+    if not os.path.exists(base_dir):
+        os.makedirs(base_dir, exist_ok=True)
+
+    async def get_url_content(
+        aiosession: aiohttp.ClientSession, image_url: str
+    ) -> bytes:
+        """Get image content."""
+        async with aiosession.get(image_url) as response:
+            return await response.content.read()
+
+    async def save_dicom_dataset(
+        instance_metadata: Dict,
+        instance_frames_metadata: List[Dict],
+        presigned_image_urls: List[str],
+        destination_file: str,
+        aiosession: aiohttp.ClientSession,
+    ) -> None:
+        """Create and save a DICOM dataset using metadata and image frame URLs."""
+
+        async def get_image_content(
+            aiosession: aiohttp.ClientSession, image_url: str
+        ) -> bytes:
+            """Get image content."""
+            async with aiosession.get(image_url) as response:
+                return await response.content.read()
+
+        frame_contents = await gather_with_concurrency(
+            MAX_FILE_BATCH_SIZE,
+            [
+                get_image_content(aiosession, image_url=image_frame_url)
+                for image_frame_url in presigned_image_urls
+            ],
+        )
+
+        ds_file = pydicom.Dataset.from_json(instance_metadata)
+        ds_file.TransferSyntaxUID = instance_frames_metadata[0]["metaData"]["00020010"][
+            "Value"
+        ]
+        # Move the file meta information to the dataset file meta
+        if not hasattr(ds_file, "file_meta"):
+            ds_file.file_meta = pydicom.dataset.FileMetaDataset()
+
+        # Iterate through the dataset and copy Group 2 elements
+        for elem in ds_file:
+            if elem.tag.group == 2:  # Check if the element belongs to Group 2
+                ds_file.file_meta.add_new(elem.tag, elem.VR, elem.value)
+                del ds_file[elem.tag]  # Remove the element from the dataset
+
+        ds_file.PixelData = pydicom.encaps.encapsulate(frame_contents)
+
+        ds_file.save_as(destination_file, write_like_original=False)
+        logger.debug(f"Saved DICOM dataset to {destination_file}")
+
+    res: List[str] = []
+    if altadb_meta_content_url.startswith("altadb:///"):
+        altadb_meta_content_url = "".join([base_url, "/", altadb_meta_content_url[10:]])
+        altadb_meta_content_url
+    elif altadb_meta_content_url.startswith("altadb://"):
+        altadb_meta_content_url = altadb_meta_content_url.replace(
+            "altadb://", "https://"
+        )
+
+    aiosession = aiohttp.ClientSession()
+    async with aiosession.get(altadb_meta_content_url, headers=headers) as response:
+        res_json = await response.json()
+        frameid_url_map: Dict[str, str] = {
+            frame["id"]: frame["path"] for frame in res_json.get("imageFrames", [])
+        }
+        for instance in res_json["metaData"]["instances"]:
+            frame_ids = [frame["id"] for frame in instance["frames"]]
+            image_frames_urls = [frameid_url_map[frame_id] for frame_id in frame_ids]
+            frame_dir = os.path.join(base_dir, instance["frames"][0]["id"])
+            os.makedirs(frame_dir, exist_ok=True)
+            export_filename = os.path.join(
+                frame_dir, f"{instance['frames'][0]['id']}.dcm"
+            )
+            await save_dicom_dataset(
+                instance["metaData"],
+                instance["frames"],
+                image_frames_urls,
+                export_filename,
+                aiosession,
+            )
+            res.append(export_filename)
+        await aiosession.close()
+        await asyncio.sleep(0.250)
+
+    return res

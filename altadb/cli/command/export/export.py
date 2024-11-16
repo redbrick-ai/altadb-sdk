@@ -29,19 +29,21 @@ class CLIExportController(CLIExportInterface):
             "--concurrency",
             type=int,
             default=MAX_CONCURRENCY,
-            help=f"Concurrency value (Default: {MAX_CONCURRENCY})",
-        )
-        parser.add_argument(
-            "--clear-cache",
-            action="store_true",
-            help="Do not download a series if the folder for the series exists.",
+            help=f"Number of files to download in parallel per series. (Default: {MAX_CONCURRENCY})",
         )
         parser.add_argument(
             "-p",
             "--page-size",
             type=int,
-            default=50,
-            help="Page size for the export (Default: 50)",
+            default=MAX_CONCURRENCY,
+            help=f"Number of series to export in parallel (Default: {MAX_CONCURRENCY})",
+        )
+        parser.add_argument(
+            "-s",
+            "--series",
+            type=str,
+            default=None,
+            help="Series UUID to export. Exports all series if not provided.",
         )
 
     def handler(self, args: Namespace) -> None:
@@ -53,13 +55,13 @@ class CLIExportController(CLIExportInterface):
     def handle_export(self) -> None:
         """Handle empty sub command."""
         path = self.args.path
-        ignore_cache = self.args.clear_cache
         page_size = self.args.page_size
         max_concurrency = self.args.concurrency
+        series = self.args.series
         if page_size < max_concurrency:
             console = Console()
             console.print(
                 "[bold yellow][WARNING] Page size is less than concurrency value. Concurrency value set to page size.",
             )
             max_concurrency = page_size
-        self.cli_dataset.export(path, ignore_cache, max_concurrency, page_size)
+        self.cli_dataset.export(path, max_concurrency, page_size, series)
