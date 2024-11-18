@@ -1,18 +1,15 @@
 """Decode DICOM images from metadata and URL."""
 
-import asyncio
 from functools import partial
 import json
-import os
-from typing import Dict, Iterator, List, Optional, Tuple
+from typing import Dict, Iterator, List, Optional
 
-import aiohttp
 from rich.console import Console
 
 from altadb.common.constants import EXPORT_PAGE_SIZE, MAX_CONCURRENCY
 from altadb.common.context import AltaDBContext
 from altadb.utils.async_utils import gather_with_concurrency
-from altadb.utils.files import save_dicom_dataset, save_dicom_dataset2
+from altadb.utils.files import save_dicom_dataset2
 from altadb.utils.pagination import PaginationIterator
 
 
@@ -24,47 +21,6 @@ class Export:
         self.context = context
         self.org_id = org_id
         self.dataset = dataset
-
-    async def construct_images_from_metadata_and_url(
-        self,
-        aiosession: aiohttp.ClientSession,
-        res_json: Dict,
-        source_dir: str,
-        filename_preifx: str,
-    ) -> List[str]:
-        """Construct a DICOM image from metadata and URL."""
-        # Get the path of each imageFrame
-        image_frames_urls_map = {
-            image_frame["id"]: image_frame["path"]
-            for image_frame in res_json.get("imageFrames", [])
-        }
-
-        file_paths: List[str] = []
-
-        # For each `instances` item, create a new file
-        for instance in res_json["metaData"]["instances"]:
-            # Get the image frame URLs
-            frame_ids = [frame["id"] for frame in instance["frames"]]
-            image_frames_urls = [
-                image_frames_urls_map[frame_id] for frame_id in frame_ids
-            ]
-            frame_dir = os.path.join(source_dir, filename_preifx)
-            os.makedirs(frame_dir, exist_ok=True)
-            export_filename = os.path.join(
-                filename_preifx, f"{filename_preifx}-{frame_ids[0]}.dcm"
-            )
-            await save_dicom_dataset(
-                instance["metaData"],
-                instance["frames"],
-                image_frames_urls,
-                os.path.join(source_dir, export_filename),
-                aiosession,
-            )
-            file_paths.append(export_filename)
-
-        await asyncio.sleep(0.250)  # give time to close ssl connections
-        await aiosession.close()
-        return file_paths
 
     def get_data_store_series(
         self, *, dataset_name: str, search: Optional[str], page_size: int
