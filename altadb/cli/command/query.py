@@ -42,7 +42,6 @@ class CLIQueryController(CLIQueryInterface):
             default=None,
             help="Search Term to filter matching Series, Study or Import data.",
         )
-        parser.add_argument
         cli_dataset = CLIDataset("")
         self.cli_dataset = cast(CLIDataset, cli_dataset)
 
