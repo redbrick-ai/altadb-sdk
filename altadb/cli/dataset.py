@@ -83,9 +83,9 @@ class CLIDataset:
     def export(
         self,
         path: str,
-        max_concurrency: int = MAX_CONCURRENCY,
-        page_size: int = EXPORT_PAGE_SIZE,
-        series: Optional[str] = None,
+        page_size: int = MAX_CONCURRENCY,
+        number: int = EXPORT_PAGE_SIZE,
+        search: Optional[str] = None,
     ) -> None:
         """Export files from dataset."""
-        self.dataset.export_to_files(path, max_concurrency, page_size, series)
+        self.dataset.export_to_files(path, page_size, number, search)

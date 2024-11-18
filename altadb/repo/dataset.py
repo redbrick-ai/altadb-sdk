@@ -121,13 +121,14 @@ class DatasetRepo(DatasetRepoInterface):
         self,
         org_id: str,
         data_store: str,
+        search: Optional[str] = None,
         first: int = 20,
         cursor: Optional[str] = None,
     ) -> Tuple[List[Dict[str, str]], str]:
         """Get data store imports."""
         query_string = """
-            query DataStoreImportSeries($orgId: UUID!, $dataStore: String!, $first: Int, $after: String) {
-                dataStoreImportSeries(orgId: $orgId, dataStore: $dataStore, first: $first, after: $after) {
+            query DataStoreImportSeries($orgId: UUID!, $dataStore: String!, $first: Int, $after: String, $search: String) {
+                dataStoreImportSeries(orgId: $orgId, dataStore: $dataStore, first: $first, after: $after, search: $search) {
                     entries {
                         orgId
                         datastore
@@ -151,6 +152,7 @@ class DatasetRepo(DatasetRepoInterface):
             "dataStore": data_store,
             "first": first,
             "after": cursor,
+            "search": search,
         }
         result = self.client.execute_query(query_string, query_variables)
         return (

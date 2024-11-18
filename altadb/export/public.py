@@ -67,7 +67,7 @@ class Export:
         return file_paths
 
     def get_data_store_series(
-        self, *, dataset_name: str, page_size: int
+        self, *, dataset_name: str, search: Optional[str], page_size: int
     ) -> Iterator[Dict[str, str]]:
         """Get data store series."""
         my_iter = PaginationIterator(
@@ -75,6 +75,7 @@ class Export:
                 self.context.dataset.get_data_store_import_series,
                 self.org_id,
                 dataset_name,
+                search,
             ),
             limit=page_size,
         )
@@ -86,9 +87,9 @@ class Export:
         self,
         dataset_name: str,
         path: str,
-        max_concurrency: int = MAX_CONCURRENCY,
-        page_size: int = EXPORT_PAGE_SIZE,
-        series_uuid: Optional[str] = None,  # pylint: disable=unused-argument
+        page_size: int = MAX_CONCURRENCY,
+        number: int = EXPORT_PAGE_SIZE,
+        search: Optional[str] = None,  # pylint: disable=unused-argument
     ) -> None:
         """Export dataset to folder."""
         # pylint: disable=too-many-locals
@@ -103,13 +104,13 @@ class Export:
 
         ds_import_series_list: List[Dict[str, str]] = []
         for ds_import_series in self.get_data_store_series(
-            dataset_name=dataset_name, page_size=page_size
+            dataset_name=dataset_name, search=search, page_size=number
         ):
             ds_import_series_list.append(ds_import_series)
-            if len(ds_import_series_list) >= max_concurrency:
+            if len(ds_import_series_list) >= page_size:
                 await self.store_data(
                     dataset_name,
-                    max_concurrency,
+                    page_size,
                     dataset_root,
                     console,
                     json_path,
@@ -121,7 +122,7 @@ class Export:
         if ds_import_series_list:
             await self.store_data(
                 dataset_name,
-                max_concurrency,
+                page_size,
                 dataset_root,
                 console,
                 json_path,

@@ -53,9 +53,9 @@ class AltaDBDataset:
     def export_to_files(
         self,
         path: str,
-        max_concurrency: int = MAX_CONCURRENCY,
-        page_size: int = EXPORT_PAGE_SIZE,
-        series: Optional[str] = None,
+        page_size: int = MAX_CONCURRENCY,
+        number: int = EXPORT_PAGE_SIZE,
+        search: Optional[str] = None,
     ) -> None:
         """
         Export the dataset files to a local folder.
@@ -66,6 +66,6 @@ class AltaDBDataset:
         """
         asyncio.run(
             self.export.export_dataset_to_folder(
-                self.name, path, max_concurrency, page_size, series
+                self.name, path, page_size, number, search
             )
         )

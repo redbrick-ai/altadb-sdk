@@ -36,6 +36,7 @@ class DatasetRepoInterface(ABC):
         self,
         org_id: str,
         data_store: str,
+        search: Optional[str] = None,
         first: int = 20,
         cursor: Optional[str] = None,
     ) -> Tuple[List[Dict[str, str]], str]:
