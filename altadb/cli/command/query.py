@@ -26,14 +26,14 @@ class CLIQueryController(CLIQueryInterface):
             "--concurrency",
             type=int,
             default=MAX_CONCURRENCY,
-            help=f"Number of files to download in parallel per series. (Default: {MAX_CONCURRENCY})",
+            help=f"Number of files to fetch in a single call. (Default: {MAX_CONCURRENCY})",
         )
         parser.add_argument(
             "-n",
             "--number",
             type=int,
             default=MAX_CONCURRENCY,
-            help=f"Number of series to export in parallel (Default: {MAX_CONCURRENCY})",
+            help=f"Maximum number of files to query. (Default: {MAX_CONCURRENCY})",
         )
         parser.add_argument(
             "-s",

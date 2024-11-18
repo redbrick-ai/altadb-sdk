@@ -36,7 +36,7 @@ class CLIExportController(CLIExportInterface):
             "--number",
             type=int,
             default=MAX_CONCURRENCY,
-            help=f"Number of series to export in parallel (Default: {MAX_CONCURRENCY})",
+            help=f"Number of series to export in total. (Default: {MAX_CONCURRENCY})",
         )
         parser.add_argument(
             "-s",
