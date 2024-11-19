@@ -28,7 +28,7 @@ class CLIExportController(CLIExportInterface):
             "--concurrency",
             type=int,
             default=MAX_CONCURRENCY,
-            help=f"Number of files to download in parallel per series. (Default: {MAX_CONCURRENCY})",
+            help=f"Number of series to download in parallel. (Default: {MAX_CONCURRENCY})",
         )
         parser.add_argument(
             "-n",

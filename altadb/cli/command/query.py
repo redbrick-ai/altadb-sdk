@@ -8,7 +8,7 @@ from rich.console import Console
 from rich.table import Table
 from rich.box import ROUNDED
 
-from altadb.common.constants import MAX_CONCURRENCY
+from altadb.common.constants import EXPORT_PAGE_SIZE
 from altadb.config import config
 from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIQueryInterface
@@ -25,15 +25,15 @@ class CLIQueryController(CLIQueryInterface):
             "-c",
             "--concurrency",
             type=int,
-            default=MAX_CONCURRENCY,
-            help=f"Number of files to fetch in a single call. (Default: {MAX_CONCURRENCY})",
+            default=EXPORT_PAGE_SIZE,
+            help=f"Number of files to fetch in a single call. (Default: {EXPORT_PAGE_SIZE})",
         )
         parser.add_argument(
             "-n",
             "--number",
             type=int,
-            default=MAX_CONCURRENCY,
-            help=f"Maximum number of files to query. (Default: {MAX_CONCURRENCY})",
+            default=EXPORT_PAGE_SIZE,
+            help=f"Maximum number of files to query. (Default: {EXPORT_PAGE_SIZE})",
         )
         parser.add_argument(
             "-s",
