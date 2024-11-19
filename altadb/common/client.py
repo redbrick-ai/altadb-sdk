@@ -166,17 +166,3 @@ class AltaDBClient:
         else:
             res = response_data
         return res
-
-    @tenacity.retry(
-        reraise=True,
-        stop=stop_after_attempt(MAX_RETRY_ATTEMPTS),
-        wait=wait_exponential(multiplier=1, min=1, max=10),
-        retry=retry_if_not_exception_type(PEERLESS_ERRORS),
-    )
-    async def get_file_content_async(
-        self, aio_session: aiohttp.ClientSession, url: str
-    ) -> bytes:
-        """Get file content using asyncio."""
-        async with aio_session.get(url, headers=self.headers) as response:
-            data = await response.content.read()
-            return data

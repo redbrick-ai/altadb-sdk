@@ -1,6 +1,6 @@
 """Organization class."""
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 from altadb.common.context import AltaDBContext
 
 

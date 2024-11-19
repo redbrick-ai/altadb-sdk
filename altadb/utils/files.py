@@ -327,7 +327,8 @@ async def download_files(
 
 async def save_dicom_series(
     altadb_meta_content_url: str,
-    series_dir: str,
+    dataset_root: str,
+    series_id: str,
     base_url: str = "https://app.altadb.com",
     headers: Optional[Dict[str, str]] = None,
 ) -> List[str]:
@@ -350,8 +351,8 @@ async def save_dicom_series(
         Headers to be used for the HTTP requests.
         If the altaDB_meta_content_url is unsigned, the headers should contain the authorization token.
     """
-    if not os.path.exists(series_dir):
-        os.makedirs(series_dir, exist_ok=True)
+    series_dir = os.path.join(dataset_root, series_id)
+    os.makedirs(series_dir, exist_ok=True)
 
     async def save_dicom_dataset(
         instance_metadata: Dict,
@@ -456,8 +457,11 @@ async def save_dicom_series(
                 image_frames_urls = [
                     frameid_url_map[frame_id] for frame_id in frame_ids
                 ]
+                file_from_dataset_root = os.path.join(
+                    series_id, f"{instance['frames'][0]['id']}.dcm"
+                )
                 destination_filename = os.path.join(
-                    series_dir, f"{instance['frames'][0]['id']}.dcm"
+                    dataset_root, file_from_dataset_root
                 )
                 tasks.append(
                     save_dicom_dataset(
@@ -468,7 +472,7 @@ async def save_dicom_series(
                         aiosession,
                     )
                 )
-                res.append(destination_filename)
+                res.append(file_from_dataset_root)
 
             await gather_with_concurrency(
                 MAX_CONCURRENCY,

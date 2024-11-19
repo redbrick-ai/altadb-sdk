@@ -132,7 +132,8 @@ class Export:
             [
                 save_dicom_series(
                     ds_import_series["url"],
-                    f"{dataset_root}/{ds_import_series['seriesId']}",
+                    dataset_root,
+                    ds_import_series["seriesId"],
                     self.context.client.base_url,
                     self.context.client.headers,
                 )
