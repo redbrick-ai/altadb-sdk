@@ -19,6 +19,7 @@ from tenacity.wait import wait_random_exponential
 from natsort import natsorted, ns
 
 from altadb.common.constants import (
+    MAX_CONCURRENCY,
     MAX_FILE_BATCH_SIZE,
     MAX_FILE_UPLOADS,
     MAX_RETRY_ATTEMPTS,
@@ -324,7 +325,7 @@ async def download_files(
     return [(path if isinstance(path, str) else None) for path in paths]
 
 
-async def save_dicom_dataset2(
+async def save_dicom_series(
     altadb_meta_content_url: str,
     series_dir: str,
     base_url: str = "https://app.altadb.com",
@@ -359,7 +360,21 @@ async def save_dicom_dataset2(
         destination_file: str,
         aiosession: aiohttp.ClientSession,
     ) -> None:
-        """Create and save a DICOM dataset using metadata and image frame URLs."""
+        """Create and save a DICOM dataset using metadata and image frame URLs.
+
+        Args
+        ------------
+        instance_metadata: Dict
+            Metadata of the instance.
+        instance_frames_metadata: List[Dict]
+            Metadata of the instance frames.
+        presigned_image_urls: List[str]
+            Presigned URLs of the image frames.
+        destination_file: str
+            Destination file to save the DICOM dataset.
+        aiosession: aiohttp.ClientSession
+            aiohttp ClientSession to be used for the HTTP requests.
+        """
 
         async def get_image_content(
             aiosession: aiohttp.ClientSession, image_url: str
@@ -377,9 +392,10 @@ async def save_dicom_dataset2(
         )
 
         ds_file = pydicom.Dataset.from_json(instance_metadata)
-        ds_file.TransferSyntaxUID = instance_frames_metadata[0]["metaData"]["00020010"][
-            "Value"
-        ]
+        ds_file.TransferSyntaxUID = pydicom.uid.UID(
+            instance_frames_metadata[0]["metaData"]["00020010"]["Value"][0]
+        )
+
         # Move the file meta information to the dataset file meta
         if not hasattr(ds_file, "file_meta"):
             ds_file.file_meta = pydicom.dataset.FileMetaDataset()
@@ -392,6 +408,30 @@ async def save_dicom_dataset2(
 
         ds_file.PixelData = pydicom.encaps.encapsulate(frame_contents)
 
+        # PATCH/START: add HTJ2KLosslessRPCL to pydicom
+        from pydicom.uid import (  # pylint: disable=import-outside-toplevel
+            UID_dictionary,
+            AllTransferSyntaxes,
+            JPEG2000TransferSyntaxes,
+        )
+
+        HTJ2KLosslessRPCL = pydicom.uid.UID(  # pylint: disable=invalid-name
+            "1.2.840.10008.1.2.4.202"
+        )
+        AllTransferSyntaxes.append(HTJ2KLosslessRPCL)
+        JPEG2000TransferSyntaxes.append(HTJ2KLosslessRPCL)
+        UID_dictionary[HTJ2KLosslessRPCL] = (
+            "High-Throughput JPEG 2000 with RPCL Options Image Compression (Lossless Only)",
+            "Transfer Syntax",
+            "",
+            "",
+            "HTJ2KLosslessRPCL",
+        )
+        # PATCH/END: add HTJ2KLosslessRPCL to pydicom
+
+        if ds_file.file_meta.TransferSyntaxUID == HTJ2KLosslessRPCL:
+            ds_file.is_little_endian = True
+            ds_file.is_implicit_VR = False
         ds_file.save_as(destination_file, write_like_original=False)
         logger.debug(f"Saved DICOM dataset to {destination_file}")
 
@@ -409,6 +449,8 @@ async def save_dicom_dataset2(
             frameid_url_map: Dict[str, str] = {
                 frame["id"]: frame["path"] for frame in res_json.get("imageFrames", [])
             }
+
+            tasks = []
             for instance in res_json["metaData"]["instances"]:
                 frame_ids = [frame["id"] for frame in instance["frames"]]
                 image_frames_urls = [
@@ -417,15 +459,22 @@ async def save_dicom_dataset2(
                 destination_filename = os.path.join(
                     series_dir, f"{instance['frames'][0]['id']}.dcm"
                 )
-                await save_dicom_dataset(
-                    instance["metaData"],
-                    instance["frames"],
-                    image_frames_urls,
-                    destination_filename,
-                    aiosession,
+                tasks.append(
+                    save_dicom_dataset(
+                        instance["metaData"],
+                        instance["frames"],
+                        image_frames_urls,
+                        destination_filename,
+                        aiosession,
+                    )
                 )
                 res.append(destination_filename)
-            await aiosession.close()
-            await asyncio.sleep(0.250)
+
+            await gather_with_concurrency(
+                MAX_CONCURRENCY,
+                tasks,
+                f"Saving series {series_dir.split('/')[-1]}",
+                keep_progress_bar=False,
+            )
 
     return res

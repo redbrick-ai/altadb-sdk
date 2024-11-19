@@ -2,7 +2,7 @@
 
 import asyncio
 from typing import Optional
-from altadb.common.constants import EXPORT_PAGE_SIZE, MAX_CONCURRENCY
+from altadb.common.constants import MAX_CONCURRENCY
 from altadb.common.context import AltaDBContext
 from altadb.export.public import Export
 from altadb.upload.public import Upload
@@ -54,7 +54,7 @@ class AltaDBDataset:
         self,
         path: str,
         page_size: int = MAX_CONCURRENCY,
-        number: int = EXPORT_PAGE_SIZE,
+        number: Optional[int] = None,
         search: Optional[str] = None,
     ) -> None:
         """

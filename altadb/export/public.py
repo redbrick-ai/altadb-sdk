@@ -2,14 +2,15 @@
 
 from functools import partial
 import json
+import os
 from typing import Dict, Iterator, List, Optional
 
 from rich.console import Console
 
-from altadb.common.constants import EXPORT_PAGE_SIZE, MAX_CONCURRENCY
+from altadb.common.constants import MAX_CONCURRENCY
 from altadb.common.context import AltaDBContext
 from altadb.utils.async_utils import gather_with_concurrency
-from altadb.utils.files import save_dicom_dataset2
+from altadb.utils.files import save_dicom_series
 from altadb.utils.pagination import PaginationIterator
 
 
@@ -44,72 +45,105 @@ class Export:
         dataset_name: str,
         path: str,
         page_size: int = MAX_CONCURRENCY,
-        number: int = EXPORT_PAGE_SIZE,
+        number: Optional[int] = None,
         search: Optional[str] = None,  # pylint: disable=unused-argument
     ) -> None:
-        """Export dataset to folder."""
-        # pylint: disable=too-many-locals
-        dataset_root = f"{path}/{dataset_name}"
-        console = Console()
+        """Export dataset to folder.
 
-        console.print(f"[bold green][\u2713] Saving dataset {dataset_name} to {path}")
+        Args
+        ----
+        dataset_name: str
+            Name of the dataset.
+        path: str
+            Path to the folder where the dataset will be saved.
+        page_size: int
+            Number of series to export in parallel.
+        number: int
+            Number of series to export in total.
+        """
+        try:
+            console = Console()
+            console.print(
+                f"[bold green][\u2713] Saving dataset {dataset_name} to {path}"
+            )
+            dataset_root = f"{path}/{dataset_name}"
+            json_path = f"{dataset_root}/series.json"
+            if os.path.exists(json_path):
+                console.print(
+                    f"[bold yellow][\u26A0] Warning: {json_path} already exists. "
+                    "It will be overwritten."
+                )
+                os.remove(json_path)
 
-        json_path = f"{dataset_root}/series.json"
+            ds_import_series_list: List[Dict[str, str]] = []
+            for ds_import_series in self.get_data_store_series(
+                dataset_name=dataset_name,
+                search=search,
+                page_size=number or MAX_CONCURRENCY,
+            ):
+                ds_import_series_list.append(ds_import_series)
+                if len(ds_import_series_list) >= page_size:
+                    await self.store_data(
+                        dataset_name,
+                        page_size,
+                        dataset_root,
+                        json_path,
+                        ds_import_series_list,
+                    )
+                    ds_import_series_list = []
 
-        series: List[Dict] = []
-
-        ds_import_series_list: List[Dict[str, str]] = []
-        for ds_import_series in self.get_data_store_series(
-            dataset_name=dataset_name, search=search, page_size=number
-        ):
-            ds_import_series_list.append(ds_import_series)
-            if len(ds_import_series_list) >= page_size:
+            if ds_import_series_list:
                 await self.store_data(
                     dataset_name,
                     page_size,
                     dataset_root,
-                    console,
                     json_path,
-                    series,
                     ds_import_series_list,
                 )
-                ds_import_series_list = []
-
-        if ds_import_series_list:
-            await self.store_data(
-                dataset_name,
-                page_size,
-                dataset_root,
-                console,
-                json_path,
-                series,
-                ds_import_series_list,
-            )
+        except Exception as error:  # pylint: disable=broad-except
+            console.print(f"[bold red][\u2717] Error: {error}")
 
     async def store_data(
         self,
-        dataset_name,
-        max_concurrency,
-        dataset_root,
-        console,
-        json_path,
-        series: List[Dict],
-        ds_import_series_list,
+        dataset_name: str,
+        max_concurrency: int,
+        dataset_root: str,
+        json_path: str,
+        ds_import_series_list: List[Dict[str, str]],
     ) -> None:
-        """Store data for the given series imports."""
+        """Store data for the given series imports.
+
+        Args
+        ----
+        dataset_name: str
+            Name of the dataset.
+        max_concurrency: int
+            Number of series to export in parallel.
+        dataset_root: str
+            Path to the dataset root folder.
+        json_path: str
+            Path to the series.json file.
+        series: List[Dict]
+            List of series to export.
+
+        """
         file_paths_list = await gather_with_concurrency(
             max_concurrency,
             [
-                self.fetch_and_save_image_data(
-                    ds_import_series,
+                save_dicom_series(
+                    ds_import_series["url"],
                     f"{dataset_root}/{ds_import_series['seriesId']}",
-                    console,
+                    self.context.client.base_url,
+                    self.context.client.headers,
                 )
                 for ds_import_series in ds_import_series_list
             ],
+            progress_bar_name=f"Exporting {len(ds_import_series_list)} series",
+            keep_progress_bar=True,
         )
+        new_series = []
         for ds_import, file_paths in zip(ds_import_series_list, file_paths_list):
-            series.append(
+            new_series.append(
                 {
                     "dataset": dataset_name,
                     "seriesId": ds_import["seriesId"],
@@ -119,23 +153,18 @@ class Export:
                     "items": file_paths,
                 }
             )
-        if series:
-            with open(json_path, "w+", encoding="utf-8") as series_file:
-                json.dump(series, series_file, indent=2)
+        if new_series:
+            series = []
+            if os.path.exists(json_path):
+                with open(json_path, "r", encoding="utf-8") as series_file:
+                    series = json.load(series_file)
 
-    async def fetch_and_save_image_data(
-        self,
-        item: Dict,
-        source_dir: str,
-        console: Console,
-    ) -> Optional[List[str]]:
-        """Fetch and save image data."""
-        # Check if the folder exists for the given seriesId
-        console.print(f"\t[blue] [\u2713] Fetching {item['seriesId']}")
-        image_content_url = item["url"]
-        return await save_dicom_dataset2(
-            image_content_url,
-            source_dir,
-            self.context.client.base_url,
-            self.context.client.headers,
-        )
+            with open(json_path, "w+", encoding="utf-8") as series_file:
+                json.dump(
+                    [
+                        *series,
+                        *new_series,
+                    ],
+                    series_file,
+                    indent=2,
+                )

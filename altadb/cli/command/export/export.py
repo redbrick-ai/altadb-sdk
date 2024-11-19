@@ -1,7 +1,6 @@
 """CLI export command."""
 
 from argparse import ArgumentParser, Namespace
-from rich.console import Console
 
 from altadb.cli.dataset import CLIDataset
 from altadb.cli.cli_base import CLIExportInterface
@@ -35,8 +34,8 @@ class CLIExportController(CLIExportInterface):
             "-n",
             "--number",
             type=int,
-            default=MAX_CONCURRENCY,
-            help=f"Number of series to export in total. (Default: {MAX_CONCURRENCY})",
+            default=None,
+            help="Number of series to export in total. Downloads all files when not provided.",
         )
         parser.add_argument(
             "-s",
@@ -58,10 +57,4 @@ class CLIExportController(CLIExportInterface):
         number = self.args.number
         page_size = self.args.concurrency
         search = self.args.search
-        if number < page_size:
-            console = Console()
-            console.print(
-                "[bold yellow][WARNING] Page size is less than concurrency value. Concurrency value set to page size.",
-            )
-            page_size = number
         self.cli_dataset.export(path, page_size, number, search)
