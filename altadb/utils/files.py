@@ -351,6 +351,7 @@ async def save_dicom_series(
         Headers to be used for the HTTP requests.
         If the altaDB_meta_content_url is unsigned, the headers should contain the authorization token.
     """
+    # pylint: disable=too-many-locals
     series_dir = os.path.join(dataset_root, series_id)
     os.makedirs(series_dir, exist_ok=True)
 
