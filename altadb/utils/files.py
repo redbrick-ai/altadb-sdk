@@ -8,6 +8,8 @@ import asyncio
 import aiohttp
 
 import pydicom
+import pydicom.dataset
+import pydicom.encaps
 import pydicom.tag
 import pydicom.uid
 
