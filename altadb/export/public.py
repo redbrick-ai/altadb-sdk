@@ -40,7 +40,7 @@ class Export:
         for ds_import_series in my_iter:
             yield ds_import_series
 
-    async def export_dataset_to_folder(
+    async def export_to_files(
         self,
         dataset_name: str,
         path: str,
@@ -60,6 +60,8 @@ class Export:
             Number of series to export in parallel.
         number: int
             Number of series to export in total.
+        search: str
+            Search string to filter the series to export.
         """
         try:
             console = Console()
@@ -70,12 +72,12 @@ class Export:
             json_path = f"{dataset_root}/series.json"
             if os.path.exists(json_path):
                 console.print(
-                    f"[bold yellow][\u26A0] Warning: {json_path} already exists. "
-                    "It will be overwritten."
+                    f"[bold yellow][\u26A0] Warning: {json_path} already exists. It will be overwritten."
                 )
                 os.remove(json_path)
 
             ds_import_series_list: List[Dict[str, str]] = []
+            # Save the files in chunks of page_size
             for ds_import_series in self.get_data_store_series(
                 dataset_name=dataset_name,
                 search=search,
@@ -83,7 +85,7 @@ class Export:
             ):
                 ds_import_series_list.append(ds_import_series)
                 if len(ds_import_series_list) >= page_size:
-                    await self.store_data(
+                    await self.save_series_data_chunk(
                         dataset_name,
                         page_size,
                         dataset_root,
@@ -93,7 +95,7 @@ class Export:
                     ds_import_series_list = []
 
             if ds_import_series_list:
-                await self.store_data(
+                await self.save_series_data_chunk(
                     dataset_name,
                     page_size,
                     dataset_root,
@@ -103,7 +105,7 @@ class Export:
         except Exception as error:  # pylint: disable=broad-except
             console.print(f"[bold red][\u2717] Error: {error}")
 
-    async def store_data(
+    async def save_series_data_chunk(
         self,
         dataset_name: str,
         max_concurrency: int,
@@ -123,26 +125,33 @@ class Export:
             Path to the dataset root folder.
         json_path: str
             Path to the series.json file.
-        series: List[Dict]
+        ds_import_series_list: List[Dict]
             List of series to export.
 
         """
+        base_url = self.context.client.url.strip()
+        if base_url.endswith("/graphql/"):
+            base_url = base_url[:-8]
+        if base_url.endswith("api/"):
+            base_url = base_url.rstrip("api/")
+        coros = [
+            save_dicom_series(
+                ds_import_series["url"],
+                dataset_root,
+                ds_import_series["seriesId"],
+                base_url,
+                self.context.client.headers,
+            )
+            for ds_import_series in ds_import_series_list
+        ]
         file_paths_list = await gather_with_concurrency(
             max_concurrency,
-            [
-                save_dicom_series(
-                    ds_import_series["url"],
-                    dataset_root,
-                    ds_import_series["seriesId"],
-                    self.context.client.base_url,
-                    self.context.client.headers,
-                )
-                for ds_import_series in ds_import_series_list
-            ],
+            coros,
             progress_bar_name=f"Exporting {len(ds_import_series_list)} series",
             keep_progress_bar=True,
         )
         new_series = []
+        # Save the series data to the series.json file
         for ds_import, file_paths in zip(ds_import_series_list, file_paths_list):
             new_series.append(
                 {

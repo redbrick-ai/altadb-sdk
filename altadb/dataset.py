@@ -60,12 +60,17 @@ class AltaDBDataset:
         """
         Export the dataset files to a local folder.
 
-        :param path: The folder to export the dataset to
-        :param max_concurrency: The maximum number of concurrent files to download
-        :param page_size: The number of series to download
+        Args
+        ----
+        path: str
+            The path to the folder where the files will be saved.
+        page_size: int
+            The number of files to download at a time.
+        number: Optional[int]
+            The number of files to download.
+        search: Optional[str]
+            The search string to filter the files.
         """
         asyncio.run(
-            self.export.export_dataset_to_folder(
-                self.name, path, page_size, number, search
-            )
+            self.export.export_to_files(self.name, path, page_size, number, search)
         )

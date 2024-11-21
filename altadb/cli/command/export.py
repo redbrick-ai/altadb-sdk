@@ -48,13 +48,14 @@ class CLIExportController(CLIExportInterface):
     def handler(self, args: Namespace) -> None:
         """Handle upload command."""
         self.args = args
-        self.cli_dataset = CLIDataset(self.args.dataset)
         self.handle_export()
 
     def handle_export(self) -> None:
         """Handle empty sub command."""
-        path = self.args.path
-        number = self.args.number
-        page_size = self.args.concurrency
-        search = self.args.search
-        self.cli_dataset.export(path, page_size, number, search)
+        self.cli_dataset = CLIDataset(self.args.dataset)
+        self.cli_dataset.export(
+            self.args.path,
+            self.args.concurrency,
+            self.args.number,
+            self.args.search,
+        )

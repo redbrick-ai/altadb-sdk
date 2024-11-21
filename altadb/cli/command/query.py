@@ -71,19 +71,18 @@ class CLIQueryController(CLIQueryInterface):
     def handle_query(self) -> None:
         """Handle query command."""
         # pylint: disable=too-many-locals
-        dataset = self.args.dataset
-        number = self.args.number
-        page_size = self.args.concurrency
-        search = self.args.search
-        cli_dataset = CLIDataset("")
+        cli_dataset = CLIDataset(self.args.dataset)
 
         if not self.cli_dataset.context.dataset.check_if_exists(
-            org_id=cli_dataset.creds.org_id, dataset_name=dataset
+            org_id=cli_dataset.creds.org_id, dataset_name=cli_dataset.dataset.name
         ):
             raise ValueError("Dataset does not exist.")
         entries: List = []
         for ds_import_series in self.get_data_store_series(
-            dataset_name=dataset, search=search, page_size=page_size, limit=number
+            dataset_name=cli_dataset.dataset.name,
+            search=self.args.search,
+            page_size=self.args.concurrency,
+            limit=self.args.number,
         ):
             entries.append(ds_import_series)
         console = Console()
@@ -124,7 +123,7 @@ class CLIQueryController(CLIQueryInterface):
             if config.log_info:
                 console.print(table)
                 console.print("Dataset queried successfully.")
-                if len(entries) < number:
+                if len(entries) < self.args.number:
                     console.print(
                         "[bold yellow]Dataset has no more entries with the search parameters."
                     )

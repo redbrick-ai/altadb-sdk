@@ -30,7 +30,6 @@ class AltaDBClient:
     def __init__(self, api_key: str, secret: str, url: str) -> None:
         """Construct RBClient."""
         self.config = config
-        self.base_url = url
         self.url = (url or DEFAULT_URL).lower().rstrip("/")
         if "amazonaws.com" not in self.url and "localhost" not in self.url:
             self.url = self.url.replace("https://", "", 1).replace("http://", "", 1)

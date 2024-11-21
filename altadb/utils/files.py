@@ -21,6 +21,7 @@ from tenacity.wait import wait_random_exponential
 from natsort import natsorted, ns
 
 from altadb.common.constants import (
+    DEFAULT_URL,
     MAX_CONCURRENCY,
     MAX_FILE_BATCH_SIZE,
     MAX_FILE_UPLOADS,
@@ -331,7 +332,7 @@ async def save_dicom_series(
     altadb_meta_content_url: str,
     dataset_root: str,
     series_id: str,
-    base_url: str = "https://app.altadb.com",
+    base_url: str = DEFAULT_URL,
     headers: Optional[Dict[str, str]] = None,
 ) -> List[str]:
     """Save DICOM files using AltaDB URLs.
@@ -352,6 +353,11 @@ async def save_dicom_series(
     headers: Optional[Dict[str, str]]
         Headers to be used for the HTTP requests.
         If the altaDB_meta_content_url is unsigned, the headers should contain the authorization token.
+
+    Returns
+    ------------
+    List[str]
+        List of the saved DICOM files relative to the dataset root.
     """
     # pylint: disable=too-many-locals
     series_dir = os.path.join(dataset_root, series_id)
