@@ -50,7 +50,6 @@ class AltaDBOrganization:
 
     def get_datasets(
         self,
-        org_id: str,
     ) -> list:
         """Retrieve all datasets in organization."""
         query = """
@@ -68,6 +67,6 @@ class AltaDBOrganization:
             }
         """
         response: Dict[str, List[Dict]] = self.context.client.execute_query(
-            query, {"orgId": org_id}
+            query, {"orgId": self.org_id}
         )
         return response["dataStores"]

@@ -4,7 +4,14 @@ from typing import Any, Dict, List, Optional, Callable, Tuple
 
 
 class PaginationIterator:
-    """Construct Labelset Iterator."""
+    """Pagination Iterator.
+
+    This iterator is used to handle default AltaDB pagination behavior.
+
+    :param func: Function to call to get the next batch of data.
+    :param concurrency: Number of items to fetch in a single DB call.
+    :param limit: Maximum number of data points to fetch.
+    """
 
     def __init__(
         self,
@@ -12,7 +19,7 @@ class PaginationIterator:
         concurrency: int = 10,
         limit: Optional[int] = None,
     ) -> None:
-        """Construct LabelsetIterator."""
+        """Construct Pagination Iterator."""
         self.cursor: Optional[str] = None
         self.datapoints_batch: Optional[List[Dict]] = None
         self.datapoints_batch_index: Optional[int] = None

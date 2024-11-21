@@ -1,6 +1,10 @@
 """Interface for interacting with your AltaDB Projects."""
 
+import asyncio
+from typing import Optional
+from altadb.common.constants import MAX_CONCURRENCY
 from altadb.common.context import AltaDBContext
+from altadb.export.public import Export
 from altadb.upload.public import Upload
 
 
@@ -22,6 +26,7 @@ class AltaDBDataset:
         self._org_id = org_id
         self._dataset = dataset
         self.upload = Upload(self.context, self._org_id, self._dataset)
+        self.export = Export(self.context, self._org_id, self._dataset)
 
     @property
     def org_id(self) -> str:
@@ -44,3 +49,28 @@ class AltaDBDataset:
     def name(self) -> str:
         """Retrieve unique name of this project."""
         return self._dataset
+
+    def export_to_files(
+        self,
+        path: str,
+        page_size: int = MAX_CONCURRENCY,
+        number: Optional[int] = None,
+        search: Optional[str] = None,
+    ) -> None:
+        """
+        Export the dataset files to a local folder.
+
+        Args
+        ----
+        path: str
+            The path to the folder where the files will be saved.
+        page_size: int
+            The number of files to download at a time.
+        number: Optional[int]
+            The number of files to download.
+        search: Optional[str]
+            The search string to filter the files.
+        """
+        asyncio.run(
+            self.export.export_to_files(self.name, path, page_size, number, search)
+        )

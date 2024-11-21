@@ -16,6 +16,7 @@ dependencies = [
     "numpy<2,>=1.15",
     "packaging<25",
     "Pillow<11,>=9.0.1",
+    "pydicom<4,>=2.4",
     "python-dateutil<3",
     "requests<3,>=2.23.0",
     "Rich<14",

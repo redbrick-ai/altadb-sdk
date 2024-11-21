@@ -1,7 +1,7 @@
 """Interface for getting basic information about a project."""
 
 from abc import ABC, abstractmethod
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 
 class DatasetRepoInterface(ABC):
@@ -32,11 +32,12 @@ class DatasetRepoInterface(ABC):
         """Get current user."""
 
     @abstractmethod
-    def get_data_store_imports(
+    def get_data_store_import_series(
         self,
         org_id: str,
         data_store: str,
+        search: Optional[str] = None,
         first: int = 20,
         cursor: Optional[str] = None,
-    ) -> List[Dict[str, str]]:
+    ) -> Tuple[List[Dict[str, str]], str]:
         """Get data store imports."""

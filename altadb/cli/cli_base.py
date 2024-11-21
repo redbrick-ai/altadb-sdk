@@ -103,6 +103,7 @@ class CLIConfigInterface(AbstractCLI):
     REMOVE = "remove"
     CLEAR = "clear"
     VERIFY = "verify"
+    EXPORT = "export"
 
     @abstractmethod
     def handler(self, args: Namespace) -> None:
@@ -152,18 +153,35 @@ class CLIUploadInterface(AbstractCLI):
         """Handle empty sub command."""
 
 
+class CLIExportInterface(AbstractCLI):
+    """CLI export interface."""
+
+    args: Namespace
+    cli_dataset: CLIDataset
+
+    @abstractmethod
+    def handler(self, args: Namespace) -> None:
+        """Handle export command."""
+
+    @abstractmethod
+    def handle_export(self) -> None:
+        """Handle empty sub command."""
+
+
 class CLIInterface(ABC):
     """Main CLI Interface."""
 
     config: CLIConfigInterface
     upload: CLIUploadInterface
     list: CLIListInterface
+    export: CLIExportInterface
 
     CONFIG = "config"
     UPLOAD = "upload"
     LIST = "list"
     QUERY = "query"
     CREATE = "create"
+    EXPORT = "export"
 
     @abstractmethod
     def handle_command(self, args: Namespace) -> None:
