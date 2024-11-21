@@ -330,8 +330,7 @@ async def download_files(
 
 async def save_dicom_series(
     altadb_meta_content_url: str,
-    dataset_root: str,
-    series_id: str,
+    series_dir: str,
     base_url: str = DEFAULT_URL,
     headers: Optional[Dict[str, str]] = None,
 ) -> List[str]:
@@ -360,7 +359,6 @@ async def save_dicom_series(
         List of the saved DICOM files relative to the dataset root.
     """
     # pylint: disable=too-many-locals
-    series_dir = os.path.join(dataset_root, series_id)
     os.makedirs(series_dir, exist_ok=True)
 
     async def save_dicom_dataset(
@@ -467,17 +465,14 @@ async def save_dicom_series(
                     frameid_url_map[frame_id] for frame_id in frame_ids
                 ]
                 file_from_dataset_root = os.path.join(
-                    series_id, f"{instance['frames'][0]['id']}.dcm"
-                )
-                destination_filename = os.path.join(
-                    dataset_root, file_from_dataset_root
+                    series_dir, f"{instance['frames'][0]['id']}.dcm"
                 )
                 tasks.append(
                     save_dicom_dataset(
                         instance["metaData"],
                         instance["frames"],
                         image_frames_urls,
-                        destination_filename,
+                        file_from_dataset_root,
                         aiosession,
                     )
                 )
