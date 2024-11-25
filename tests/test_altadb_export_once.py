@@ -28,6 +28,8 @@ DATA_ITEMS = [
     "ProstatePT",
     "ModalitySM",
     "ModalityHC",
+    "ModalityOT",
+    "AbdominalMR",
 ]
 
 ALTADB_DATASETS = [
