@@ -6,7 +6,6 @@ from typing import Dict
 
 import pydicom
 import pydicom.dataset
-import pytest
 import requests  # type: ignore
 import altadb
 import altadb.export
@@ -20,28 +19,25 @@ ALTADB_URL = os.environ["ALTADB_URL"]
 ALTADB_ORG_ID = os.environ["ALTADB_ORG_ID"]
 ALTADB_DATASET = os.environ["ALTADB_DATASET"]
 ALTADB_SERIES_FILE_NAME = "series.json"
+DATA_DIR = "data"
+
+# List of folders that contain the test data
+# The name of the folder should match the name of the dataset in the AltaDB
+DATA_ITEMS = [
+    "Brain110",
+    "ProstatePT",
+    "ModalitySM",
+    "ModalityHC",
+]
 
 ALTADB_DATASETS = [
     {
-        "name": "Brain110",
-        "local": "data/Brain110/AXIALFSE_25",  # Single Series
+        "name": item,
+        "local": f"data/{item}",
         "org": ALTADB_ORG_ID,
-    },
-    {
-        "name": "ProstatePT",
-        "local": "data/prostate_pt",  # Single Series
-        "org": ALTADB_ORG_ID,
-    },
-    {
-        "name": "ModalitySM",
-        "local": "data/modality_sm",  # Single Series
-        "org": ALTADB_ORG_ID,
-    },
-    {
-        "name": "ModalityHC",
-        "local": "data/modality_hc",  # Single Series
-        "org": ALTADB_ORG_ID,
-    },
+    }
+    for item in os.listdir(os.path.join(os.path.dirname(__file__), DATA_DIR))
+    if item in DATA_ITEMS
 ]
 
 
@@ -190,9 +186,6 @@ def test_export(tmpdir: str, altadb_dataset: str, local_dir: str, org_id: str) -
         # Remove pixel data
         del x["7FE00010"]
         temp.append(x)
-
-    with open("temp.json", "w") as f:
-        json.dump(temp, f)
 
     for exported_series_dir in os.listdir(os.path.join(tmpdir, altadb_dataset)):
         if exported_series_dir == ALTADB_SERIES_FILE_NAME:  # Skip the series.json file
