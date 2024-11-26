@@ -17,7 +17,6 @@ ALTADB_API_KEY = os.environ["ALTADB_API_KEY"]
 ALTADB_SECRET_KEY = os.environ["ALTADB_SECRET_KEY"]
 ALTADB_URL = os.environ["ALTADB_URL"]
 ALTADB_ORG_ID = os.environ["ALTADB_ORG_ID"]
-ALTADB_DATASET = os.environ["ALTADB_DATASET"]
 ALTADB_SERIES_FILE_NAME = "series.json"
 DATA_DIR = "data"
 
