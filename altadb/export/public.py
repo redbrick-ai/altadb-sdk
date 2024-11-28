@@ -137,8 +137,7 @@ class Export:
         coros = [
             save_dicom_series(
                 ds_import_series["url"],
-                dataset_root,
-                ds_import_series["seriesId"],
+                os.path.join(dataset_root, ds_import_series["seriesId"]),
                 base_url,
                 self.context.client.headers,
             )
