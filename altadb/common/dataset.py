@@ -32,6 +32,10 @@ class DatasetRepoInterface(ABC):
         """Get current user."""
 
     @abstractmethod
+    def get_data_store_imports(self, org_id: str, data_store: str) -> Tuple[Dict, str]:
+        """Get data store imports."""
+
+    @abstractmethod
     def get_data_store_import_series(
         self,
         org_id: str,
@@ -41,3 +45,7 @@ class DatasetRepoInterface(ABC):
         cursor: Optional[str] = None,
     ) -> Tuple[List[Dict[str, str]], str]:
         """Get data store imports."""
+
+    @abstractmethod
+    def delete_dataset(self, org_id: str, dataset_name: str) -> bool:
+        """Delete a dataset."""
