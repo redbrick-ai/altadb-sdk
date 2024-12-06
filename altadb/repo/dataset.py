@@ -117,7 +117,9 @@ class DatasetRepo(DatasetRepoInterface):
         current_user: Dict = result["me"]
         return current_user
 
-    def get_data_store_imports(self, org_id: str, data_store: str) -> Tuple[Dict, str]:
+    def get_data_store_imports(
+        self, org_id: str, data_store: str
+    ) -> Tuple[List[Dict], str]:
         """Get data store import."""
         query_string = """
             query dataStoreImports($orgId: UUID!, $dataStore: String!, $first: Int, $after: String, $createdBy: CustomUUID, $createdAfter: DateTime, $createdBefore: DateTime){

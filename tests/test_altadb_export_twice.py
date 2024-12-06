@@ -11,6 +11,7 @@ import altadb.export.public
 from tests import marks
 from tests.utils import (
     check_export_series_count,
+    compare_directories_for_dicom,
     upload_export,
     compare_exported_datasets,
 )
@@ -91,6 +92,10 @@ def test_export_twice(
     compare_exported_datasets(
         f"{export_dir1}/{altadb_dataset}", f"{export_dir2}/{new_dataset}"
     )
+
+    series_id = series[0]["seriesId"]
+
+    compare_directories_for_dicom(local_dir, f"{export_dir2}/{new_dataset}/{series_id}")
 
     # # Delete the new dataset.
     context.dataset.delete_dataset(org_id, new_dataset)

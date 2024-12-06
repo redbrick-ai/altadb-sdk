@@ -7,7 +7,7 @@ from typing import Dict, List
 
 ALTADB_SERIES_FILE_NAME = "series.json"
 DATA_DIR = "data"
-MAX_SLEEP_TIME = 600
+MAX_SLEEP_TIME = 900
 
 # List of folders that contain the test data
 # The name of the folder should match the name of the dataset in the AltaDB
@@ -25,7 +25,7 @@ def get_altadb_datasets(org_id: str) -> List[Dict[str, str]]:
     return [
         {
             "name": item,
-            "local": f"data/{item}",
+            "local": os.path.join(os.path.dirname(__file__), DATA_DIR, item),
             "org": org_id,
         }
         for item in os.listdir(os.path.join(os.path.dirname(__file__), DATA_DIR))

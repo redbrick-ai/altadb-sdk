@@ -22,93 +22,9 @@ DATA_DIR = "data"
 
 # List of folders that contain the test data
 # The name of the folder should match the name of the dataset in the AltaDB
-DATA_ITEMS = [
-    "Brain110",
-    "ProstatePT",
-    "ModalitySM",
-    "ModalityHC",
-    "ModalityOT",
-    "AbdominalMR",
-]
-
-ALTADB_DATASETS = [
-    {
-        "name": item,
-        "local": f"data/{item}",
-        "org": ALTADB_ORG_ID,
-    }
-    for item in os.listdir(os.path.join(os.path.dirname(__file__), DATA_DIR))
-    if item in DATA_ITEMS
-]
 
 
-class ExactHeadersComparison(enum.Enum):
-    """Enum to specify the exact headers comparison."""
-
-    SOPClassUID = "00080016"
-    SOPInstanceUID = "00080018"
-    StudyInstanceUID = "0020000D"
-    SeriesInstanceUID = "0020000E"
-    PatientID = "00100020"
-    PatientName = "00100010"
-    StudyID = "00200010"
-    StudyDate = "00080020"
-    StudyTime = "00080030"
-    ReferringPhysicianName = "00080090"
-    AccessionNumber = "00080050"
-    SeriesNumber = "00200011"
-    Modality = "00080060"
-    SeriesDescription = "0008103E"
-    ImageNumber = "00200013"
-    AcquisitionDate = "00080022"
-    AcquisitionTime = "00080032"
-    ImageType = "00080008"
-    ImageComments = "00204000"
-    ImagePositionPatient = "00200032"
-    ImageOrientationPatient = "00200037"
-    SliceLocation = "00201041"
-    PixelSpacing = "00280030"
-    SliceThickness = "00180050"
-    Rows = "00280010"
-    Columns = "00280011"
-    SamplesPerPixel = "00280002"
-    PhotometricInterpretation = "00280004"
-    BitsAllocated = "00280100"
-    BitsStored = "00280101"
-    HighBit = "00280102"
-    PixelRepresentation = "00280103"
-
-
-def _get_series_metadata(series_url: str, headers: Dict[str, str]) -> dict:
-    """Get the series metadata using the AltaDB series URL.
-
-    Returns
-    -------
-    dict
-        The SOPInstanceUID to metadata map.
-
-    Structure of the metadata:
-    {
-        "SOPInstanceUID": {
-            "8 digit tag value": {
-                "Value": ["value"],
-                "vr": "vr",
-            },
-        }
-    }
-    """
-    series_url = series_url.replace("altadb://", "https://preview.altadb.com")
-    response = requests.get(
-        series_url,
-        headers=headers,
-    )
-    sop_instance_uid_metadata_map = {}
-    for item in response.json()["metaData"]["instances"]:
-        series_metadata = item["metaData"]
-        sop_instance_uid_metadata_map[
-            series_metadata[ExactHeadersComparison.SOPInstanceUID.value]["Value"][0]
-        ] = series_metadata
-    return sop_instance_uid_metadata_map
+ALTADB_DATASETS = get_altadb_datasets(ALTADB_ORG_ID)
 
 
 @marks.parametrize(
@@ -170,16 +86,19 @@ def test_export(tmpdir: str, altadb_dataset: str, local_dir: str, org_id: str) -
         raise ValueError(
             "The number of series in the dataset does not match the number of series in the export."
         )
-    url_sop_metadata_map = _get_series_metadata(
+    url_sop_metadata_map = get_series_metadata(
         series[0]["url"], headers=context.client.headers
     )
-    local_series_root = os.path.join(os.path.dirname(__file__), local_dir)
+    local_series_root = os.path.join(local_dir)
     local_dcm_files = []
     for file in os.listdir(local_series_root):
         local_dcm_files.append(os.path.join(local_series_root, file))
     local_sop_metadata_map = {}
     temp = []
     for original_dcm_file in local_dcm_files:
+        # Handle local cases when you've hidden files like .DS_Store
+        if not original_dcm_file.endswith(".dcm"):
+            continue
         ds = pydicom.dcmread(original_dcm_file, force=True)
         sop_instance_uid = ds.SOPInstanceUID
         local_sop_metadata_map[str(sop_instance_uid)] = ds.to_json_dict()
