@@ -129,6 +129,7 @@ def upload_export(
             raise ValueError("The dataset creation has failed.")
         if import_item["status"] == ResourceStatus.CREATION_SUCCESS.value:
             break
+        sleep(10)
         total_slept += 10
     if import_item["status"] != ResourceStatus.CREATION_SUCCESS.value:
         raise ValueError("The dataset creation has failed.")
