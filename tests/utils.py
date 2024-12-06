@@ -1,22 +1,45 @@
 """Utility functions for the tests."""
 
 from asyncio import run
+from dataclasses import dataclass
 import os
 from time import sleep
 from typing import Dict, List
+
 import pydicom
 import requests  # type: ignore
 
 import altadb
 from tests.contstants import (
     ALTADB_SERIES_FILE_NAME,
-    MAX_SLEEP_TIME,
+    DATA_DIR,
+    DATA_ITEMS,
     ExactHeadersComparison,
+    MAX_SLEEP_TIME,
     ResourceStatus,
 )
 
 
-def get_series_metadata(series_url: str, headers: Dict[str, str]) -> Dict[str, Dict]:
+@dataclass
+class DataSetItem:
+    name: str
+    local: str
+    org_id: str
+
+
+def get_altadb_datasets(org_id: str) -> List[DataSetItem]:
+    return [
+        DataSetItem(
+            item, os.path.join(os.path.dirname(__file__), DATA_DIR, item), org_id
+        )
+        for item in os.listdir(os.path.join(os.path.dirname(__file__), DATA_DIR))
+        if item in DATA_ITEMS
+    ]
+
+
+def build_sop_metadata_map_remote(
+    series_url: str, headers: Dict[str, str]
+) -> Dict[str, Dict]:
     """Get the series metadata using the AltaDB series URL.
 
     Returns
@@ -49,12 +72,28 @@ def get_series_metadata(series_url: str, headers: Dict[str, str]) -> Dict[str, D
 
 
 def check_export_series_count(
-    dir_name: str, altadb_dataset: str, series: List[Dict[str, str]]
+    dir_name: str,
 ) -> None:
-    num_series = os.listdir(os.path.join(dir_name, altadb_dataset))
-    assert ALTADB_SERIES_FILE_NAME in num_series
-    num_series.remove(ALTADB_SERIES_FILE_NAME)
-    if len(num_series) != len(series):
+    """
+    Check that the number of series in the path <tmpdir>/<DATASET>
+    is the same as the number of series in the dataset.
+
+    If the number of series is not the same, the export has failed.
+
+    Args
+    ----
+    dir_name: str
+        The path to the dataset directory.
+
+    Raises
+    ------
+    ValueError
+        If the number of series in the dataset does not match the number of series in the export.
+    """
+    all_series = os.listdir(dir_name)
+    assert ALTADB_SERIES_FILE_NAME in all_series
+    all_series.remove(ALTADB_SERIES_FILE_NAME)
+    if len(all_series) != 1:
         raise ValueError(
             "The number of series in the dataset does not match the number of series in the export."
         )
@@ -95,77 +134,71 @@ def upload_export(
         raise ValueError("The dataset creation has failed.")
 
 
+def build_sop_metadata_map_local(local_dir: str) -> Dict[str, Dict]:
+    """Build a SOPInstanceUID to metadata map for the local DICOM files."""
+    sop_metadata_map = {}
+    for _original_dcm_file in os.listdir(local_dir):
+        # Handle local cases when you've hidden files like .DS_Store
+        original_dcm_file = os.path.join(local_dir, _original_dcm_file)
+        if not original_dcm_file.endswith(".dcm"):
+            continue
+        ds = pydicom.dcmread(original_dcm_file, force=True)
+        sop_instance_uid = ds.SOPInstanceUID
+        ds_json_dict = ds.to_json_dict()
+        if "7FE00010" in ds_json_dict:
+            del ds_json_dict["7FE00010"]  # PixelData
+        if "00282000" in ds_json_dict:
+            del ds_json_dict["00282000"]  # ICC Profile, present in Modality SM
+        if "FFFCFFFC" in ds_json_dict:
+            del ds_json_dict["FFFCFFFC"]
+        sop_metadata_map[str(sop_instance_uid)] = ds_json_dict
+        # Check that it has at least one of the required tags
+        assert "00080016" in sop_metadata_map[sop_instance_uid]  # SOPClassUID
+        assert "00080018" in sop_metadata_map[sop_instance_uid]  # SOPInstanceUID
+    return sop_metadata_map
+
+
+def compare_metadata(metadata1: Dict[str, Dict], metadata2: Dict[str, Dict]) -> None:
+    """Compare the metadata of two DICOM files."""
+    for sop_instance_uid, metadata in metadata1.items():
+        assert metadata2[sop_instance_uid] == metadata
+
+
 def compare_exported_datasets(dataset1: str, dataset2: str) -> None:
     """Check if the number of directories in two directories are the same."""
     assert len(os.listdir(dataset1)) == len(os.listdir(dataset2))
-    # assert len(os.listdir(os.path.join(dataset1, os.listdir(dataset1)[0]))) == len(
-    #     os.listdir(os.path.join(dataset2, os.listdir(dataset2)[0]))
-    # )
-    dir_series_map1 = {}
-    dir_series_map2 = {}
+    dir_series_map1: Dict[str, Dict] = {}
+    dir_series_map2: Dict[str, Dict] = {}
     # Read all DICOM files, and map thei SOPInstanceUID to the metadata
     for series_dir in os.listdir(dataset1):
         if series_dir == ALTADB_SERIES_FILE_NAME:
             continue
-        series_path = os.path.join(dataset1, series_dir)
-        for dcm_file in os.listdir(series_path):
-            ds = pydicom.dcmread(os.path.join(series_path, dcm_file), force=True)
-            sop_instance_uid = ds.SOPInstanceUID
-            # Remove the PixelData from the metadata
-            ds_json_dict = ds.to_json_dict()
-            if "7FE00010" in ds_json_dict:
-                del ds_json_dict["7FE00010"]
-            dir_series_map1[sop_instance_uid] = ds_json_dict
+        dir_series_map1 = build_sop_metadata_map_local(
+            os.path.join(dataset1, series_dir)
+        )
     for series_dir in os.listdir(dataset2):
         if series_dir == ALTADB_SERIES_FILE_NAME:
             continue
-        series_path = os.path.join(dataset2, series_dir)
-        for dcm_file in os.listdir(series_path):
-            ds = pydicom.dcmread(os.path.join(series_path, dcm_file), force=True)
-            sop_instance_uid = ds.SOPInstanceUID
-            # Remove the PixelData from the metadata
-            ds_json_dict = ds.to_json_dict()
-            if "7FE00010" in ds_json_dict:
-                del ds_json_dict["7FE00010"]
-            dir_series_map2[sop_instance_uid] = ds_json_dict
-    # Compare the metadata
-    for sop_instance_uid, metadata in dir_series_map1.items():
-        assert dir_series_map2[sop_instance_uid] == metadata
+        dir_series_map2 = build_sop_metadata_map_local(
+            os.path.join(dataset2, series_dir)
+        )
+    compare_metadata(dir_series_map1, dir_series_map2)
 
 
 def compare_directories_for_dicom(dir1: str, dir2: str) -> None:
     """Compare that two directories have the same DICOM files."""
-    dir_series_map1: Dict[str, Dict] = {}
-    dir_series_map2: Dict[str, Dict] = {}
     # Use os.walk to get all the files in the directory
-    for root, _, files in os.walk(dir1):
-        for file in files:
-            if file.endswith(".dcm"):
-                ds = pydicom.dcmread(os.path.join(root, file), force=True)
-                sop_instance_uid = ds.SOPInstanceUID
-                # Remove the PixelData from the metadata
-                ds_json_dict = ds.to_json_dict(suppress_invalid_tags=True)
-                if "7FE00010" in ds_json_dict:
-                    del ds_json_dict["7FE00010"]
-                if "00282000" in ds_json_dict:
-                    del ds_json_dict["00282000"]  # ICC Profile, present in Modality SM
-                if "FFFCFFFC" in ds_json_dict:
-                    del ds_json_dict["FFFCFFFC"]
-                dir_series_map1[sop_instance_uid] = ds_json_dict
-    for root, _, files in os.walk(dir2):
-        for file in files:
-            if file.endswith(".dcm"):
-                ds = pydicom.dcmread(os.path.join(root, file), force=True)
-                sop_instance_uid = ds.SOPInstanceUID
-                # Remove the PixelData from the metadata
-                ds_json_dict = ds.to_json_dict(suppress_invalid_tags=True)
-                if "7FE00010" in ds_json_dict:
-                    del ds_json_dict["7FE00010"]
-                if "00282000" in ds_json_dict:
-                    del ds_json_dict["00282000"]
-                if "FFFCFFFC" in ds_json_dict:
-                    del ds_json_dict["FFFCFFFC"]
-                dir_series_map2[sop_instance_uid] = ds_json_dict
-    # Compare the metadata
-    for sop_instance_uid, metadata in dir_series_map1.items():
-        assert dir_series_map2[sop_instance_uid] == metadata
+    dir_series_map1 = build_sop_metadata_map_local(dir1)
+    dir_series_map2 = build_sop_metadata_map_local(dir2)
+    compare_metadata(dir_series_map1, dir_series_map2)
+
+
+def get_single_data_store_import_series_if_exists(
+    context: altadb.AltaDBContext, org_id: str, dataset: str
+) -> Dict[str, str]:
+    """Get the single data store import series if it exists."""
+    series, cursor = context.dataset.get_data_store_import_series(org_id, dataset)
+    if cursor:
+        raise ValueError("Additional data has been added to the dataset.")
+    assert len(series) == 1
+    return series[0]

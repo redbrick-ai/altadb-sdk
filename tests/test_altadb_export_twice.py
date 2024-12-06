@@ -12,11 +12,11 @@ from tests import marks
 from tests.utils import (
     check_export_series_count,
     compare_directories_for_dicom,
-    upload_export,
     compare_exported_datasets,
+    get_altadb_datasets,
+    get_single_data_store_import_series_if_exists,
+    upload_export,
 )
-
-from .contstants import get_altadb_datasets
 
 
 ALTADB_API_KEY = os.environ["ALTADB_API_KEY"]
@@ -29,13 +29,14 @@ ALTADB_DATASETS = get_altadb_datasets(ALTADB_ORG_ID)
 
 @marks.parametrize(
     "altadb_dataset, local_dir, org_id",
-    [
-        (dataset["name"], dataset["local"], dataset["org"])
-        for dataset in ALTADB_DATASETS
-    ],
+    [(dataset.name, dataset.local, dataset.org_id) for dataset in ALTADB_DATASETS],
 )
 def test_export_twice(
-    tmpdir: str, altadb_dataset: str, local_dir: str, org_id: str
+    context: altadb.AltaDBContext,
+    tmpdir: str,
+    altadb_dataset: str,
+    local_dir: str,
+    org_id: str,
 ) -> None:
     """Test uploading the exported dataset to AltaDB.
 
@@ -43,6 +44,7 @@ def test_export_twice(
     1. Export the dataset to a temporary directory (export v1).
     2. Upload the dataset to AltaDB.
     3. Export the dataset to a temporary directory (export v2).
+    4. Compare the two exports.
 
     Expected result:
     The two exports should be the same.
@@ -51,51 +53,44 @@ def test_export_twice(
     Directory for first export: tmpdir/e1
     Directory for second export: tmpdir/e2
     """
-    context = altadb.AltaDBContext(ALTADB_API_KEY, ALTADB_SECRET_KEY, ALTADB_URL)
+    # Pre processing: create a new dataset.
     dataset = altadb.AltaDBDataset(context, org_id, altadb_dataset)
-    altadb._populate_context(context)
     new_dataset = f"{altadb_dataset}v2"
-
     # If the new dataset already exists, delete it.
     exists = context.dataset.check_if_exists(org_id, new_dataset)
     if exists:
         context.dataset.delete_dataset(org_id, new_dataset)
     context.dataset.create_dataset(org_id, new_dataset)
 
-    # Export the dataset to a temporary directory (export v1).
+    # Step 1: Export the dataset to a temporary directory (export v1).
     export_dir1 = os.path.join(tmpdir, "e1")
     run(dataset.export.export_to_files(altadb_dataset, export_dir1))
     # Get the number of series in the export v1.
-    series, cursor = context.dataset.get_data_store_import_series(
-        org_id, altadb_dataset
+    series = get_single_data_store_import_series_if_exists(
+        context, org_id, altadb_dataset
     )
-    if cursor:
-        raise ValueError("Additional data has been added to the dataset.")
-    check_export_series_count(export_dir1, altadb_dataset, series)
+    check_export_series_count(os.path.join(export_dir1, altadb_dataset))
 
+    # Step 2: Upload the dataset to AltaDB.
     # Upload the dataset to AltaDB.
     import_id = str(uuid.uuid4())
     upload_export(org_id, context, dataset, new_dataset, export_dir1, import_id)
 
-    # Export the dataset to a temporary directory (export v2).
+    # Step 3: Export the dataset to a temporary directory (export v2).
     export_dir2 = os.path.join(tmpdir, "e2")
-
-    #
     run(dataset.export.export_to_files(new_dataset, export_dir2))
     # Get the number of series in the export v2.
-    series, cursor = context.dataset.get_data_store_import_series(org_id, new_dataset)
-    if cursor:
-        raise ValueError("Additional data has been added to the dataset.")
-    check_export_series_count(export_dir2, new_dataset, series)
+    series = get_single_data_store_import_series_if_exists(context, org_id, new_dataset)
+    check_export_series_count(os.path.join(export_dir2, new_dataset))
 
-    # Compare the two exports.
+    # Step 4: Compare the two exports.
+    # Compare the two exports directories.
     compare_exported_datasets(
         f"{export_dir1}/{altadb_dataset}", f"{export_dir2}/{new_dataset}"
     )
-
-    series_id = series[0]["seriesId"]
-
-    compare_directories_for_dicom(local_dir, f"{export_dir2}/{new_dataset}/{series_id}")
-
-    # # Delete the new dataset.
+    # Compare the local directory with the export v2.
+    compare_directories_for_dicom(
+        local_dir, f"{export_dir2}/{new_dataset}/{series['seriesId']}"
+    )
+    # Delete the new dataset.
     context.dataset.delete_dataset(org_id, new_dataset)

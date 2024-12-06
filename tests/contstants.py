@@ -1,8 +1,6 @@
 """Constants used in the tests."""
 
 from enum import Enum
-import os
-from typing import Dict, List
 
 
 ALTADB_SERIES_FILE_NAME = "series.json"
@@ -19,18 +17,6 @@ DATA_ITEMS = [
     "ModalityOT",
     "AbdominalMR",
 ]
-
-
-def get_altadb_datasets(org_id: str) -> List[Dict[str, str]]:
-    return [
-        {
-            "name": item,
-            "local": os.path.join(os.path.dirname(__file__), DATA_DIR, item),
-            "org": org_id,
-        }
-        for item in os.listdir(os.path.join(os.path.dirname(__file__), DATA_DIR))
-        if item in DATA_ITEMS
-    ]
 
 
 class ExactHeadersComparison(Enum):
