@@ -12,7 +12,6 @@ MAX_SLEEP_TIME = 900
 DATA_ITEMS = [
     "Brain110",
     "ProstatePT",
-    "ModalitySM",
     "ModalityHC",
     "ModalityOT",
     "AbdominalMR",

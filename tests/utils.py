@@ -4,7 +4,9 @@ from asyncio import run
 from dataclasses import dataclass
 import os
 from time import sleep
-from typing import Dict, List
+from typing import Any, Dict, List
+from itkwasm_htj2k import decode  # type: ignore
+
 
 import pydicom
 import requests  # type: ignore
@@ -159,6 +161,22 @@ def build_sop_metadata_map_local(local_dir: str) -> Dict[str, Dict]:
     return sop_metadata_map
 
 
+def build_sop_pixeldata_map_local(
+    local_dir: str,
+) -> Dict[str, Any]:
+    """Build a SOPInstanceUID to pixel data map for the local DICOM files."""
+    sop_pixel_data_map = {}
+    for _original_dcm_file in os.listdir(local_dir):
+        # Handle local cases when you've hidden files like .DS_Store
+        original_dcm_file = os.path.join(local_dir, _original_dcm_file)
+        if not original_dcm_file.endswith(".dcm"):
+            continue
+        ds = pydicom.dcmread(original_dcm_file, force=True)
+        sop_instance_uid = ds.SOPInstanceUID
+        sop_pixel_data_map[sop_instance_uid] = ds.PixelData
+    return sop_pixel_data_map
+
+
 def compare_metadata(metadata1: Dict[str, Dict], metadata2: Dict[str, Dict]) -> None:
     """Compare the metadata of two DICOM files."""
     for sop_instance_uid, metadata in metadata1.items():
@@ -170,11 +188,16 @@ def compare_exported_datasets(dataset1: str, dataset2: str) -> None:
     assert len(os.listdir(dataset1)) == len(os.listdir(dataset2))
     dir_series_map1: Dict[str, Dict] = {}
     dir_series_map2: Dict[str, Dict] = {}
+    dir_pixel_data_map1: Dict[str, Any] = {}
+    dir_pixel_data_map2: Dict[str, Any] = {}
     # Read all DICOM files, and map thei SOPInstanceUID to the metadata
     for series_dir in os.listdir(dataset1):
         if series_dir == ALTADB_SERIES_FILE_NAME:
             continue
         dir_series_map1 = build_sop_metadata_map_local(
+            os.path.join(dataset1, series_dir)
+        )
+        dir_pixel_data_map1 = build_sop_pixeldata_map_local(
             os.path.join(dataset1, series_dir)
         )
     for series_dir in os.listdir(dataset2):
@@ -183,7 +206,30 @@ def compare_exported_datasets(dataset1: str, dataset2: str) -> None:
         dir_series_map2 = build_sop_metadata_map_local(
             os.path.join(dataset2, series_dir)
         )
+        dir_pixel_data_map2 = build_sop_pixeldata_map_local(
+            os.path.join(dataset2, series_dir)
+        )
     compare_metadata(dir_series_map1, dir_series_map2)
+    compare_pixel_data(dir_pixel_data_map1, dir_pixel_data_map2)
+
+
+def compare_pixel_data(
+    pixel_data_map1: Dict[str, Dict[str, Any]],
+    pixel_data_map2: Dict[str, Dict[str, Any]],
+) -> None:
+    """Compare the pixel data of two DICOM files."""
+    for sop_instance_uid, pixel_data in pixel_data_map1.items():
+        pixel_data1 = decode(pixel_data)
+        pixel_data2 = decode(pixel_data_map2[sop_instance_uid])
+        l1, l2 = len(pixel_data1.data), len(pixel_data2.data)
+        w1, w2 = len(pixel_data1.data[0]), len(pixel_data2.data[0])
+        assert l1 == l2
+        assert w1 == w2
+        assert all(
+            pixel_data1.data[i][j] == pixel_data2.data[i][j]
+            for i in range(len(pixel_data1.data))
+            for j in range(len(pixel_data1.data[0]))
+        )
 
 
 def compare_directories_for_dicom(dir1: str, dir2: str) -> None:

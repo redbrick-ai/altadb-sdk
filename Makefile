@@ -12,7 +12,7 @@ test:
 	pydocstyle --count altadb && \
 	mypy altadb && \
 	pylint --rcfile=setup.cfg -j=3 --recursive=y altadb
-	pytest -n 12 -x tests 
+	pytest -n 10 -x tests 
 
 build: clean install
 	python -m build -w -n -o .
