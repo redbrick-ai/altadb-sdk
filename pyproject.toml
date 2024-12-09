@@ -58,6 +58,7 @@ dev = [
     "pytest-xdist[psutil]<=3.5.0",
     "setuptools<=69.2.0",
     "wheel<=0.42.0",
+    "itkwasm-htj2k<3,>=2.3.1"
 ]
 
 
