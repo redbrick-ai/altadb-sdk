@@ -452,7 +452,13 @@ async def save_dicom_series(
             }
 
             tasks = []
-            for instance in res_json["metaData"]["instances"]:
+            metadata_url = res_json["metaData"]
+            instances: Dict[str, Any] = {}
+            async with aiosession.get(metadata_url) as response:
+                response.raise_for_status()
+                instances = await response.json()
+            print("Instances", instances)
+            for instance in instances["instances"]:
                 frame_ids = [frame["id"] for frame in instance["frames"]]
                 image_frames_urls = [
                     frameid_url_map[frame_id] for frame_id in frame_ids

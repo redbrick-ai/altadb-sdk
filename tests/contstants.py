@@ -15,6 +15,7 @@ DATA_ITEMS = [
     "ModalityHC",
     "ModalityOT",
     "AbdominalMR",
+    "Tomo",
 ]
 
 
