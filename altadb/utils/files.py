@@ -28,6 +28,7 @@ from altadb.common.constants import (
     MAX_RETRY_ATTEMPTS,
 )
 from altadb.utils.async_utils import gather_with_concurrency
+from altadb.utils.dicom_utils import move_group2_to_file_meta
 from altadb.utils.logging import log_error, logger
 from altadb.config import config
 
@@ -404,15 +405,7 @@ async def save_dicom_series(
             instance_frames_metadata[0]["metaData"]["00020010"]["Value"][0]
         )
 
-        # Move the file meta information to the dataset file meta
-        if not hasattr(ds_file, "file_meta"):
-            ds_file.file_meta = pydicom.dataset.FileMetaDataset()
-
-        # Iterate through the dataset and copy Group 2 elements
-        for elem in ds_file:
-            if elem.tag.group == 2:  # Check if the element belongs to Group 2
-                ds_file.file_meta.add_new(elem.tag, elem.VR, elem.value)
-                del ds_file[elem.tag]  # Remove the element from the dataset
+        move_group2_to_file_meta(ds_file)
 
         ds_file.PixelData = pydicom.encaps.encapsulate(frame_contents)
 

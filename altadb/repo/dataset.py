@@ -117,6 +117,41 @@ class DatasetRepo(DatasetRepoInterface):
         current_user: Dict = result["me"]
         return current_user
 
+    def get_data_store_imports(
+        self, org_id: str, data_store: str
+    ) -> Tuple[List[Dict], str]:
+        """Get data store import."""
+        query_string = """
+            query dataStoreImports($orgId: UUID!, $dataStore: String!, $first: Int, $after: String, $createdBy: CustomUUID, $createdAfter: DateTime, $createdBefore: DateTime){
+                dataStoreImports(orgId: $orgId, dataStore: $dataStore, first: $first, after: $after, createdBy: $createdBy, createdAfter: $createdAfter, createdBefore: $createdBefore){
+                    entries{
+                        orgId
+                        datastore
+                        name
+                        importId
+                        createdAt
+                        createdBy
+                        status
+                        updatedAt
+                        taskCount
+                        failureLogs
+                    }
+                    cursor
+                }
+            }
+        """
+        query_variables = {
+            "orgId": org_id,
+            "dataStore": data_store,
+            "first": 20,
+            "after": None,
+        }
+        result = self.client.execute_query(query_string, query_variables)
+        return (
+            result["dataStoreImports"]["entries"],
+            result["dataStoreImports"]["cursor"],
+        )
+
     def get_data_store_import_series(
         self,
         org_id: str,
@@ -159,3 +194,20 @@ class DatasetRepo(DatasetRepoInterface):
             result["dataStoreImportSeries"]["entries"],
             result["dataStoreImportSeries"]["cursor"],
         )
+
+    def delete_dataset(self, org_id: str, dataset_name: str) -> bool:
+        """Delete a dataset."""
+        query_string = """
+            mutation removeDatastoreSDK($orgId: UUID!, $dataStores: [String!]!) {
+                removeDatastore(orgId: $orgId, dataStores: $dataStores) {
+                    ok
+                    message
+                }
+            }
+        """
+        query_variables = {
+            "orgId": org_id,
+            "dataStores": [dataset_name],
+        }
+        result = self.client.execute_query(query_string, query_variables)
+        return result["removeDatastore"]["ok"]
