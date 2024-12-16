@@ -65,7 +65,13 @@ def build_sop_metadata_map_remote(
         headers=headers,
     )
     sop_instance_uid_metadata_map = {}
-    for item in response.json()["metaData"]["instances"]:
+    metadata_url = response.json()["metaData"]
+    response = requests.get(
+        metadata_url,
+        headers=headers,
+    )
+    instances = response.json()["instances"]
+    for item in instances:
         series_metadata = item["metaData"]
         sop_instance_uid_metadata_map[
             series_metadata[ExactHeadersComparison.SOPInstanceUID.value]["Value"][0]
