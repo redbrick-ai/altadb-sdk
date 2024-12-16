@@ -5,14 +5,19 @@ install:
 	python -m pip install --upgrade pip && \
 	python -m pip install -e .[dev]
 
-test:
+lint:
 	black --check altadb && \
 	flake8 --benchmark --count altadb && \
 	pycodestyle --benchmark --count --statistics altadb && \
 	pydocstyle --count altadb && \
 	mypy altadb && \
 	pylint --rcfile=setup.cfg -j=3 --recursive=y altadb
-	pytest -n 10 -x tests 
+
+unit:
+	pytest -n 12 -x tests
+
+test: lint unit
+
 
 build: clean install
 	python -m build -w -n -o .
