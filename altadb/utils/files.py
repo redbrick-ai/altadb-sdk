@@ -457,7 +457,6 @@ async def save_dicom_series(
             async with aiosession.get(metadata_url) as response:
                 response.raise_for_status()
                 instances = await response.json()
-            print("Instances", instances)
             for instance in instances["instances"]:
                 frame_ids = [frame["id"] for frame in instance["frames"]]
                 image_frames_urls = [
